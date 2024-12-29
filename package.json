@@ -1,0 +1,30 @@
+{
+  "name": "knowledge_base",
+  "version": "1.0.0",
+  "description": "application to train the knowledgebase using multiple models",
+  "main": "index.js",
+  "scripts": {
+    "circular": "madge --extensions ts --ts-config ./tsconfig.json --circular .",
+    "prebuild": "npm run circular && rm -rf ./build",
+    "build": "tsc",
+    "watch": "tsc-watch --noClear -p tsconfig.json --onSuccess \"node build\"",
+    "dev": "npm run prebuild && npm run build && npm run watch",
+    "uat": "npm run prebuild && npm run build && npm run watch"
+  },
+  "author": "Rahul Saini",
+  "license": "ISC",
+  "dependencies": {
+    "@langchain/community": "^0.3.20",
+    "@langchain/mistralai": "^0.2.0",
+    "@langchain/mongodb": "^0.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "langchain": "^0.3.8",
+    "mongodb": "^6.12.0",
+    "uuid": "^11.0.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
