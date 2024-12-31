@@ -26,3 +26,5 @@ class PdfProcessor extends AbstractFileProcessor {
     }
   }
 }
+
+export default PdfProcessor;

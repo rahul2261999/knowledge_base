@@ -22,3 +22,5 @@ class DocxProcessor extends AbstractFileProcessor {
     }
   }
 }
+
+export default DocxProcessor;

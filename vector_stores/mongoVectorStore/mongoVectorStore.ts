@@ -16,8 +16,8 @@ class MongoVectorStore implements BaseVectorStore {
       mistralEmbeddings,
       {
         collection: mongo_db_client.getCollection(constant.mongo.collection),
-        indexName: 'mistral_embeddings',
-        embeddingKey: 'mistral_embeddings',
+        indexName: 'mistral',
+        embeddingKey: 'embedding',
         textKey: 'text'
       }
     );
