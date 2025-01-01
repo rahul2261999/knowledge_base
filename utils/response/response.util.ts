@@ -1,14 +1,19 @@
 import constant from "../../constants/constant";
+import { asyncLocalStorage } from "../helper/store.util";
 
 class SuccessResponse<T> {
-  public correlationId: string;
+  public correlationId: string | null;
+  public message: string;
   public statusCode: number;
-  public data: T;
+  public data: T | null;
 
-  constructor(correlationId: string, data: T, options?: { statusCode: number }) {
-    this.correlationId = correlationId;
+  constructor(message: string, options?: Partial<{ statusCode: number, data: T }>) {
+    const store = asyncLocalStorage.getStore();
+
+    this.correlationId = store?.get("correlationId") ?? null;
+    this.message = message;
     this.statusCode = options?.statusCode ?? constant.statusCodes.OK;
-    this.data = data;
+    this.data = options?.data ?? null;
   }
 }
 

@@ -1,8 +1,16 @@
 import { Document } from "@langchain/core/documents";
 import { IBaseTextSplitter } from "../text_splitters/index.type";
+import { BaseVectorStore } from "../vector_stores/base.interface";
 
 export interface IBaseFileProcessor {
-  load(): Promise<Document[]>;
-  split(textsplitterProcessor?: IBaseTextSplitter): Promise<Document[]>;
-  store(): Promise<void>;
+  load(): Promise<IBaseFileProcessor>;
+  split(textsplitterProcessor?: IBaseTextSplitter): Promise<IBaseFileProcessor>;
+  store(options?: IStoreOpions): Promise<void>;
+}
+
+export interface IStoreOpions {
+  storeInstance?: BaseVectorStore,
+  fileMetaData: {
+    [key: string]: string
+  }
 }

@@ -1,14 +1,14 @@
 import * as path from 'path';
 
 class FileHelper {
-  private file: File;
+  private file: Express.Multer.File;
 
-  constructor(file: File) {
+  constructor(file: Express.Multer.File) {
     this.file = file;
   }
 
   public getFileExtension(): string {
-    return path.extname(this.file.name).toLocaleLowerCase();
+    return path.extname(this.file.originalname).toLocaleLowerCase();
   }
 
   public validateFileExtension(allowedExtensions: string[]): boolean {

@@ -20,7 +20,7 @@ class WinstonService implements ILoggerClientMethods {
         'debug': 2,
         'warn': 3,
       },
-      
+
       format: Winston.format.combine(
         Winston.format.timestamp({
           format: 'DD-MM-YYYY HH:mm:ss',
@@ -34,19 +34,22 @@ class WinstonService implements ILoggerClientMethods {
         new Winston.transports.Console(),
       ],
     })
-   }
+  }
 
   info(...args: any[]): void {
-    this.winston.info(args)
+    args.forEach(args => this.winston.info(args))
   }
   debug(...args: any[]): void {
-    this.winston.debug(args)
+    args.forEach(args => this.winston.debug(args))
+
   }
   warn(...args: any[]): void {
-   this.winston.warn(args);
+    args.forEach(args => this.winston.warn(args))
+
   }
   error(...args: any[]): void {
-    this.winston.error(args);
+    args.forEach(args => args && this.winston.error(args))
+
   }
 
 }

@@ -2,7 +2,7 @@ import { ILoggerData } from "../../utils/logger/logger.type";
 import * as multer from 'multer'
 
 export interface IIngestionMethods {
-  uploadTrainingData(params: IUploadTrainingData, options: IIngestionMethodsOptions): Promise<void>;
+  uploadTrainingData(params: IUploadTrainingData): Promise<void>;
   bulkUploadTrainingData(params: IBulkUploadTrainingData, options: IIngestionMethodsOptions): Promise<void>;
   // triggerTraining(): Promise<void>;
   // trainingCallback(): Promise<void>;
@@ -19,11 +19,11 @@ export interface ITrainingMetaData {
 }
 
 export interface IUploadTrainingData {
-  file: File & { path: string };
+  file: Express.Multer.File;
   metaData: ITrainingMetaData;
 }
 
 export interface IBulkUploadTrainingData {
-  file: File & { path: string }[];
+  file: Express.Multer.File[];
   metaData: ITrainingMetaData;
 }

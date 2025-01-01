@@ -14,7 +14,6 @@ export interface ILoggerClientMethods {
 }
 
 export interface ILoggerData {
-  correlationId: string;
   controller?: string;
   serviceName?: string;
   function?: string;

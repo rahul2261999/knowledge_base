@@ -22,9 +22,8 @@ class IngestionService implements IIngestionMethods {
     return IngestionService.instance;
   };
 
-  public async uploadTrainingData(params: IUploadTrainingData, options: IIngestionMethodsOptions): Promise<void> {
+  public async uploadTrainingData(params: IUploadTrainingData): Promise<void> {
     const loggerData: ILoggerData = {
-      ...options.loggerData,
       serviceName: 'IngestionService',
       function: 'uploadTrainingData',
       message: 'executing'
@@ -38,7 +37,7 @@ class IngestionService implements IIngestionMethods {
       if (!validation.success) {
         loggerService.error({ ...loggerData, message: 'validation failed' });
 
-        throw new BadRequest(validation.error.toString(), { correlationId: loggerData.correlationId })
+        throw new BadRequest(validation.error.toString())
       }
 
       const fileHelper = new FileHelper(params.file);
@@ -48,7 +47,7 @@ class IngestionService implements IIngestionMethods {
       if (!validFileExtension) {
         const message = `File with extension ${fileExtension} not supported`
 
-        throw new BadRequest(message, { correlationId: loggerData.correlationId })
+        throw new BadRequest(message)
       }
 
       let fileProcessor: IBaseFileProcessor;
@@ -64,9 +63,9 @@ class IngestionService implements IIngestionMethods {
         // later will add the text processor
         const message = `File with extension ${fileExtension} not supported`
 
-        throw new BadRequest(message, { correlationId: loggerData.correlationId })
+        throw new BadRequest(message)
       }
-
+      
       await fileProcessor.load();
       await fileProcessor.split();
       await fileProcessor.store();

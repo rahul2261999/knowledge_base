@@ -7,7 +7,7 @@ export interface BaseGetRetriver {
 }
 
 export interface BaseVectorStore {
-  addDocuments(documents: Document[]): void;
+  addDocuments(documents: Document[]): Promise<void>;
 
   getRetriver(params?: BaseGetRetriver): VectorStoreRetriever;
 }

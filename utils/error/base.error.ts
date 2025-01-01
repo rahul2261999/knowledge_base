@@ -1,4 +1,4 @@
-import InternalServer from "./internal_server.error";
+import { asyncLocalStorage } from "../helper/store.util";
 
 abstract class BaseError extends Error {
   protected correlationId: string | null;
@@ -6,9 +6,11 @@ abstract class BaseError extends Error {
   protected error?: any[];
 
 
-  constructor(message: string, statusCode: number, options?: { correlationId?: string, error: any[] }) {
+  constructor(message: string, statusCode: number, options?: { error: any[] }) {
     super(message);
-    this.correlationId = options?.correlationId ?? null;
+    const store = asyncLocalStorage.getStore();
+   
+    this.correlationId = store?.get("correlationId") ?? null;
     this.statusCode = statusCode;
     this.error = options?.error ?? [];
 
@@ -23,12 +25,17 @@ abstract class BaseError extends Error {
     Object.setPrototypeOf(this, new.target.prototype);
   }
 
-  public static fromError<T>(error: T, correlationId?: string): BaseError {
-    if (error instanceof Error) {
-      return new InternalServer('Something went wrong', { correlationId })
-    } else {
-      return error as BaseError
-    }
+  public getStatusCode(): number {
+    return this.statusCode;
+  }
+
+  public toJson() {
+    return {
+      correlationId: this.correlationId,
+      statusCode: this.statusCode,
+      message: this.message,
+      error: this.error,
+    };
   }
 }
 

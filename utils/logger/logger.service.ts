@@ -2,6 +2,7 @@ import { sortBy } from "lodash";
 import { ELoggerDataOrder } from "./logger.enum";
 import { ILoggerClientMethods, ILoggerData, ILoggerServiceMethods } from "./logger.type";
 import winstonService from "./winston/winston.service";
+import { asyncLocalStorage } from "../helper/store.util";
 
 
 class LoggingService implements ILoggerServiceMethods {
@@ -9,8 +10,9 @@ class LoggingService implements ILoggerServiceMethods {
   private loggerClient: ILoggerClientMethods;
   private loggerDataOrder;
 
-  private constructor(params: ILoggerClientMethods) {
-    this.loggerClient = params;
+  private constructor(loggerCient: ILoggerClientMethods) {
+    this.loggerClient = loggerCient;
+    
     this.loggerDataOrder = {
       correlationId: ELoggerDataOrder.correlationId,
       controller: ELoggerDataOrder.controller,
@@ -39,49 +41,65 @@ class LoggingService implements ILoggerServiceMethods {
     return finalMessage.join('--->')
   }
 
-  public info(message: ILoggerData | string): void {
-    let formmatedMessage: string;
+  private getCorrelationId() {
+    const store = asyncLocalStorage.getStore();
+    const correlationId = store?.get('correlationId') ?? '-';
 
-    if(typeof message !== 'string') {
-      formmatedMessage = this.formatter(message);
+    return correlationId;
+  }
+
+  public info(message: ILoggerData | string): void {
+    
+
+    let formmatedMessage: string = `correlationId: ${this.getCorrelationId()} --> `;
+
+    if (typeof message !== 'string') {
+      formmatedMessage += this.formatter(message);
     } else {
-      formmatedMessage = message
+      formmatedMessage += message
     }
 
     this.loggerClient.info(formmatedMessage);
   }
 
   public debug(message: ILoggerData | string): void {
-    let formmatedMessage: string;
+    let formmatedMessage: string = `correlationId: ${this.getCorrelationId()} --> `;
 
-    if(typeof message !== 'string') {
-      formmatedMessage = this.formatter(message);
+    if (typeof message !== 'string') {
+      formmatedMessage += this.formatter(message);
     } else {
-      formmatedMessage = message
+      formmatedMessage += message
     }
 
     this.loggerClient.debug(formmatedMessage);
   }
 
-  public warn(message: ILoggerData | string, option?: { error?: Error; }): void {
-    let formmatedMessage: string;
+  public warn(message: ILoggerData | string | null, option?: { error?: Error; }): void {
+    let formmatedMessage: string = `correlationId: ${this.getCorrelationId()} --> `;
 
-    if(typeof message !== 'string') {
-      formmatedMessage = this.formatter(message);
-    } else {
-      formmatedMessage = message
+    if (message !== null) {
+      if (typeof message !== 'string') {
+        formmatedMessage += this.formatter(message);
+      } else {
+        formmatedMessage += message
+      }
     }
 
     this.loggerClient.warn(formmatedMessage, option?.error);
   }
 
-  public error(message: ILoggerData | string, option?: { error?: Error; }): void {
-    let formmatedMessage: string;
+  public error(message: ILoggerData | string | null, option?: { error?: Error; }): void {
+    const store = asyncLocalStorage.getStore();
+    const correlationId = store?.get('correlationId') ?? '-';
 
-    if(typeof message !== 'string') {
-      formmatedMessage = this.formatter(message);
-    } else {
-      formmatedMessage = message
+    let formmatedMessage: string = `correlationId: ${this.getCorrelationId()} --> `;
+
+    if (message !== null) {
+      if (typeof message !== 'string') {
+        formmatedMessage += this.formatter(message);
+      } else {
+        formmatedMessage = message
+      }
     }
 
     this.loggerClient.error(formmatedMessage, option?.error);

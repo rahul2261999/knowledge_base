@@ -1,7 +1,4 @@
 
-import { config } from "dotenv";
-config();
-
 export default Object.freeze({
   app: {
     port: Number(process.env.PORT) || 5008

@@ -14,12 +14,13 @@ class PdfProcessor extends AbstractFileProcessor {
   }
 
 
-  public async load(): Promise<Document[]> {
+  public async load(): Promise<IBaseFileProcessor> {
     try {
       const data = await this.pdfLoader.load();
-      this.setLoadedDocuments(data);
+      this.setOriginalDocuments(data);
+      this.setParsedDocuemnts(data);
 
-      return data;
+      return this;
     } catch (error) {
 
       throw error;
