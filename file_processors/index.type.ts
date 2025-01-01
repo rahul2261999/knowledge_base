@@ -11,6 +11,6 @@ export interface IBaseFileProcessor {
 export interface IStoreOpions {
   storeInstance?: BaseVectorStore,
   fileMetaData: {
-    [key: string]: string
+    [key: string]: string | number | boolean;
   }
 }

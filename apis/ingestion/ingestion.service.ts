@@ -1,3 +1,4 @@
+import { v4 } from "uuid";
 import { FileExtensions } from "../../constants/global.enum";
 import DocxProcessor from "../../file_processors/doc/doc.processor";
 import { IBaseFileProcessor } from "../../file_processors/index.type";
@@ -68,7 +69,12 @@ class IngestionService implements IIngestionMethods {
       
       await fileProcessor.load();
       await fileProcessor.split();
-      await fileProcessor.store();
+      await fileProcessor.store({
+        fileMetaData: {
+          ...params.metaData,
+          documentId: v4()
+        },
+      });
 
       loggerData.message = "execution completed"
       loggerService.info(loggerData);

@@ -20,7 +20,7 @@ export const ingestTrainingData = async (request: Request, response: Response) =
       metaData: request.body
     });
 
-    loggerData.message = "exrcuted";
+    loggerData.message = "executed";
     loggerService.info(loggerData);
 
     const res = new SuccessResponse('Training started successfully');

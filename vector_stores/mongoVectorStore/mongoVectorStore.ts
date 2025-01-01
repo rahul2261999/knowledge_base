@@ -4,6 +4,8 @@ import constant from "../../constants/constant";
 import mistralEmbeddings from "../../embeddings/mistral_embeddings";
 import { BaseVectorStore, BaseGetRetriver } from "../base.interface";
 import mongo_db_client from "../../dbs/mongodb_client";
+import { ILoggerData } from "../../utils/logger/logger.type";
+import loggerService from "../../utils/logger/logger.service";
 
 class MongoVectorStore implements BaseVectorStore {
 
@@ -31,14 +33,20 @@ class MongoVectorStore implements BaseVectorStore {
   }
 
   public async addDocuments(params: Document[], docIds?: string[]) {
+    const loggerData: ILoggerData = {
+      serviceName: 'MongoVectorStore',
+      function: 'addDocuments',
+      message: 'executing'
+    }
     try {
-      console.info("executing -> addDocuments");
+     loggerService.info(loggerData);
 
       await this.vectorStore.addDocuments(params, { ids: docIds });
 
-      console.info("exection complete -> addDocuments")
+      loggerData.message = 'execution complete'
+      loggerService.info(loggerData);
     } catch (error) {
-      console.error(error);
+      loggerService.error(loggerData, { error: error as Error });
 
       throw new Error("Something went wrong when adding documents");
     }

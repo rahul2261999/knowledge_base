@@ -1,8 +1,6 @@
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { IBaseFileProcessor } from "../index.type";
 import { IPdfLoaderParams } from "./pdf.type";
-import { Document } from "@langchain/core/documents";
-import { IBaseTextSplitter } from "../../text_splitters/index.type";
 import AbstractFileProcessor from "../index.processor";
 
 class PdfProcessor extends AbstractFileProcessor {

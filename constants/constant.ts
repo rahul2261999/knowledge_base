@@ -1,3 +1,6 @@
+import { config } from "dotenv"
+
+config();
 
 export default Object.freeze({
   app: {

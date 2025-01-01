@@ -6,6 +6,9 @@ import { v4 } from "uuid";
 import { asyncLocalStorage } from "./utils/helper/store.util";
 import loggerService from "./utils/logger/logger.service";
 import router from "./apis/main.route";
+import * as swaggerJsDoc from 'swagger-jsdoc'
+import * as swaggerUi from 'swagger-ui-express';
+
 
 config()
 
@@ -37,6 +40,25 @@ class Application {
     asyncLocalStorage.run(store, () => {
       next()
     })
+  }
+
+  private swaggerConfig() {
+    loggerService.info('Configuring Swagger ...');
+
+    const options: swaggerJsDoc.Options = {
+      definition: {
+        openapi: '3.0.0',
+        info: {
+          title: 'My API',
+          version: '1.0.0',
+          description: 'API Documentation',
+        },
+      },
+      apis: ['./apis/ingestion/main.route.js'],
+    }
+
+    const swaggerDocs = swaggerJsDoc(options);
+    this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
   }
 
   public getExpressApp() {

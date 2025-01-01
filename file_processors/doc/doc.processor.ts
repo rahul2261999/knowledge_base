@@ -1,4 +1,3 @@
-import { Document } from "@langchain/core/documents";
 import { DocxLoader } from "@langchain/community/document_loaders/fs/docx";
 import AbstractFileProcessor from "../index.processor";
 import { IBaseFileProcessor } from "../index.type";
