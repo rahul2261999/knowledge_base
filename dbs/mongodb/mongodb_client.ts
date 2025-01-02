@@ -1,5 +1,5 @@
 import { Db, MongoClient } from 'mongodb'
-import constant from '../constants/constant';
+import constant from '../../constants/constant';
 
 class MongoDbClient {
   private static instance: MongoDbClient;

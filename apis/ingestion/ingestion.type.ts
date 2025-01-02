@@ -2,11 +2,11 @@ import { ILoggerData } from "../../utils/logger/logger.type";
 import * as multer from 'multer'
 
 export interface IIngestionMethods {
-  uploadTrainingData(params: IUploadTrainingData): Promise<void>;
+  uploadTrainingData(params: IUploadTrainingData): Promise<{ documentId: string }>;
   bulkUploadTrainingData(params: IBulkUploadTrainingData, options: IIngestionMethodsOptions): Promise<void>;
   // triggerTraining(): Promise<void>;
   // trainingCallback(): Promise<void>;
-  deleteTrainingData(params: any, options: IIngestionMethodsOptions): Promise<void>;
+  deleteTrainingData(params: IDeleteTraininData): Promise<void>;
 }
 
 export interface IIngestionMethodsOptions {
@@ -24,6 +24,12 @@ export interface IUploadTrainingData {
 }
 
 export interface IBulkUploadTrainingData {
-  file: Express.Multer.File[];
+  files: Express.Multer.File[];
   metaData: ITrainingMetaData;
+}
+
+export interface IDeleteTraininData {
+  tenantId: string;
+  documentId: string;
+  [key: string]: string | number | boolean | null
 }

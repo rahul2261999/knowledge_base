@@ -8,6 +8,7 @@ import loggerService from "./utils/logger/logger.service";
 import router from "./apis/main.route";
 import * as swaggerJsDoc from 'swagger-jsdoc'
 import * as swaggerUi from 'swagger-ui-express';
+import mongodb_client from "./dbs/mongodb/mongodb_client";
 
 
 config()
@@ -21,17 +22,6 @@ class Application {
     this.app = express();
   }
 
-  private middleware() {
-    this.app.use(cors());
-    this.app.use(express.json());
-    this.app.use(express.urlencoded({ extended: true }));
-    this.app.use(this.configAsyncStore);
-  }
-
-  private routers() {
-    this.app.use('/api', router);
-  }
-
   private configAsyncStore(request: express.Request, response: express.Response, next: express.NextFunction) {
     const correlationId = v4();
     const store = new Map<string, string>();
@@ -40,6 +30,20 @@ class Application {
     asyncLocalStorage.run(store, () => {
       next()
     })
+  }
+
+  private middleware() {
+    this.app.use(cors());
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: true }));
+    this.app.use(this.configAsyncStore);
+  }
+
+  private async initlizeDatabase() {
+  }
+
+  private routers() {
+    this.app.use('/api', router);
   }
 
   private swaggerConfig() {
@@ -74,6 +78,7 @@ class Application {
 
   public init() {
     this.middleware();
+    this.initlizeDatabase()
     this.routers();
 
     this.app.listen(this.port, () => {

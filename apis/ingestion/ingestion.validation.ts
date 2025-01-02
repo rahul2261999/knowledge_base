@@ -23,6 +23,16 @@ class ValidationSchema {
     file: ValidationSchema.MulterFile,
     metaData: ValidationSchema.trainingMetaData
   })
+
+  public static readonly bulkUploadTrainingData = z.object({
+    files: z.array(ValidationSchema.MulterFile),
+    metaData: ValidationSchema.trainingMetaData
+  })
+
+  public static readonly deleteTraininData = z.object({
+    tenantId: z.string().nonempty("Tenant Id can not be empty"),
+    documentId: z.string().nonempty("Document Id can not be empty"),
+  })
   
 }
 

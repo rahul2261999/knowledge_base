@@ -9,7 +9,7 @@ abstract class BaseError extends Error {
   constructor(message: string, statusCode: number, options?: { error: any[] }) {
     super(message);
     const store = asyncLocalStorage.getStore();
-   
+    this.name = this.constructor.name;
     this.correlationId = store?.get("correlationId") ?? null;
     this.statusCode = statusCode;
     this.error = options?.error ?? [];

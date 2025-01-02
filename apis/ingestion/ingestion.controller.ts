@@ -5,17 +5,17 @@ import InternalServer from "../../utils/error/internal_server.error";
 import ingestionService from "./ingestion.service";
 import SuccessResponse from "../../utils/response/response.util";
 
-export const ingestTrainingData = async (request: Request, response: Response) => {
+export const createIngestTrainingData = async (request: Request, response: Response) => {
   const loggerData: ILoggerData = {
     controller: 'IngestionController',
-    serviceName: 'ingestTrainingData',
+    serviceName: 'createIngestTrainingData',
     message: 'executing',
   }
 
   try {
     loggerService.info(loggerData);
 
-    await ingestionService.uploadTrainingData({
+    const data = await ingestionService.uploadTrainingData({
       file: request.file!,
       metaData: request.body
     });
@@ -23,8 +23,34 @@ export const ingestTrainingData = async (request: Request, response: Response) =
     loggerData.message = "executed";
     loggerService.info(loggerData);
 
-    const res = new SuccessResponse('Training started successfully');
+    const res = new SuccessResponse('Training completed successfully', { data });
+    response.status(res.statusCode).json(res);
+  } catch (error) {
+    loggerData.message = "error executing";
+    loggerService.error(loggerData);
 
+    const customError =  InternalServer.fromError(error);
+
+    response.status(customError.getStatusCode()).json(customError.toJson());
+  }
+}
+
+export const deleteIngestTrainingData = async (request: Request, response: Response) => {
+  const loggerData: ILoggerData = {
+    controller: 'IngestionController',
+    serviceName: 'deleteIngestTrainingData',
+    message: 'executing',
+  }
+
+  try {
+    loggerService.info(loggerData);
+
+    const data = await ingestionService.deleteTrainingData(request.body);
+
+    loggerData.message = "executed";
+    loggerService.info(loggerData);
+
+    const res = new SuccessResponse('Training data deleted successfully', { data });
     response.status(res.statusCode).json(res);
   } catch (error) {
     loggerData.message = "error executing";

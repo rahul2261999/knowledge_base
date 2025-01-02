@@ -15,7 +15,7 @@ class InternalServer extends BaseError {
   }
 
   public static fromError(error: any): BaseError {
-    if (error instanceof Error) {
+    if (error.constructor.name === Error.name) {
       const store = asyncLocalStorage.getStore();
    
       return new InternalServer('Something went wrong')

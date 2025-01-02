@@ -8,8 +8,11 @@ import InternalServer from "../../utils/error/internal_server.error";
 import FileHelper from "../../utils/helper/file.util";
 import loggerService from "../../utils/logger/logger.service";
 import { ILoggerData } from "../../utils/logger/logger.type";
-import { IBulkUploadTrainingData, IIngestionMethods, IIngestionMethodsOptions, IUploadTrainingData } from "./ingestion.type";
+import { IBulkUploadTrainingData, IDeleteTraininData, IIngestionMethods, IIngestionMethodsOptions, IUploadTrainingData } from "./ingestion.type";
 import ValidationSchema from "./ingestion.validation";
+import documentRepo from "../../dbs/mongodb/models/document/document.repo";
+import document_embeddingsRepo from "../../dbs/mongodb/models/document_embeddings/document_embeddings.repo";
+import mongoose from "mongoose";
 
 class IngestionService implements IIngestionMethods {
   private static instance: IngestionService;
@@ -23,7 +26,7 @@ class IngestionService implements IIngestionMethods {
     return IngestionService.instance;
   };
 
-  public async uploadTrainingData(params: IUploadTrainingData): Promise<void> {
+  public async uploadTrainingData(params: IUploadTrainingData) {
     const loggerData: ILoggerData = {
       serviceName: 'IngestionService',
       function: 'uploadTrainingData',
@@ -36,9 +39,9 @@ class IngestionService implements IIngestionMethods {
       const validation = ValidationSchema.uploadTrainingData.safeParse(params);
 
       if (!validation.success) {
-        loggerService.error({ ...loggerData, message: 'validation failed' });
+        loggerService.error({ ...loggerData, message: 'validation failed', additionalArgs: validation.error });
 
-        throw new BadRequest(validation.error.toString())
+        throw new BadRequest(validation.error.toString(), { error: validation.error.issues })
       }
 
       const fileHelper = new FileHelper(params.file);
@@ -50,6 +53,11 @@ class IngestionService implements IIngestionMethods {
 
         throw new BadRequest(message)
       }
+
+      const newDocument = await documentRepo.create({
+        name: params.file.originalname,
+        tenantId: params.metaData.tenantId
+      });
 
       let fileProcessor: IBaseFileProcessor;
 
@@ -66,18 +74,22 @@ class IngestionService implements IIngestionMethods {
 
         throw new BadRequest(message)
       }
-      
+
       await fileProcessor.load();
       await fileProcessor.split();
       await fileProcessor.store({
         fileMetaData: {
           ...params.metaData,
-          documentId: v4()
+          documentId: newDocument._id.toString()
         },
       });
 
       loggerData.message = "execution completed"
       loggerService.info(loggerData);
+
+      return {
+        documentId: newDocument._id.toString(),
+      }
 
     } catch (error) {
 
@@ -94,7 +106,20 @@ class IngestionService implements IIngestionMethods {
 
     try {
       loggerService.info(loggerData);
-      
+
+      const validation = ValidationSchema.bulkUploadTrainingData.safeParse(params);
+
+      if (!validation.success) {
+        loggerService.error({ ...loggerData, message: 'validation failed' });
+
+        throw new BadRequest(validation.error.toString())
+      }
+
+      const bulkUploadPromise = params.files.map(async file => {
+        return await this.uploadTrainingData({ file, metaData: params.metaData })
+      })
+
+      await Promise.allSettled(bulkUploadPromise);
 
       loggerData.message = "execution completed"
       loggerService.info(loggerData);
@@ -104,16 +129,28 @@ class IngestionService implements IIngestionMethods {
       throw InternalServer.fromError(error)
     }
   }
-  public async deleteTrainingData(params: any, options: IIngestionMethodsOptions): Promise<void> {
+  public async deleteTrainingData(params: IDeleteTraininData): Promise<void> {
     const loggerData: ILoggerData = {
-      ...options.loggerData,
       serviceName: 'IngestionService',
-      function: 'uploadTrainingData',
+      function: 'deleteTrainingData',
       message: 'executing'
     }
 
     try {
       loggerService.info(loggerData);
+      const validation = ValidationSchema.deleteTraininData.safeParse(params);
+
+      if (!validation.success) {
+        throw new BadRequest(validation.error.message, { error: validation.error.issues })
+      }
+
+      const deletedDocument = await documentRepo.deleteOne(params.documentId);
+      const deleteEmbeddings = await document_embeddingsRepo.deleteMany({
+        tenantId: params.tenantId,
+        documentId: params.documentId
+      });
+
+      loggerService.warn({ ...loggerData, message: '', additionalArgs: { deletedDocument, deleteEmbeddings } })
 
       loggerData.message = "execution completed"
       loggerService.info(loggerData);

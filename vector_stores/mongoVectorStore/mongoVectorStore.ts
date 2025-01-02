@@ -3,9 +3,9 @@ import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
 import constant from "../../constants/constant";
 import mistralEmbeddings from "../../embeddings/mistral_embeddings";
 import { BaseVectorStore, BaseGetRetriver } from "../base.interface";
-import mongo_db_client from "../../dbs/mongodb_client";
 import { ILoggerData } from "../../utils/logger/logger.type";
 import loggerService from "../../utils/logger/logger.service";
+import mongoVectoreStoreDb from "../../dbs/mongodb/mongoose_client";
 
 class MongoVectorStore implements BaseVectorStore {
 
@@ -17,7 +17,7 @@ class MongoVectorStore implements BaseVectorStore {
     this.vectorStore = new MongoDBAtlasVectorSearch(
       mistralEmbeddings,
       {
-        collection: mongo_db_client.getCollection(constant.mongo.collection),
+        collection: mongoVectoreStoreDb.getCollection(constant.mongo.collection),
         indexName: 'mistral',
         embeddingKey: 'embedding',
         textKey: 'text'
