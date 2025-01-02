@@ -150,7 +150,7 @@ class IngestionService implements IIngestionMethods {
         documentId: params.documentId
       });
 
-      loggerService.warn({ ...loggerData, message: '', additionalArgs: { deletedDocument, deleteEmbeddings } })
+      loggerService.debug({ ...loggerData, message: '', additionalArgs: { deletedDocument, deleteEmbeddings } })
 
       loggerData.message = "execution completed"
       loggerService.info(loggerData);

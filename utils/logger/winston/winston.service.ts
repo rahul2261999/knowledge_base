@@ -20,7 +20,7 @@ class WinstonService implements ILoggerClientMethods {
         'debug': 2,
         'warn': 3,
       },
-
+      level: 'warn',
       format: Winston.format.combine(
         Winston.format.timestamp({
           format: 'DD-MM-YYYY HH:mm:ss',

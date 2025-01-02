@@ -35,6 +35,9 @@ class LoggingService implements ILoggerServiceMethods {
     const orderAttribute = sortBy(Object.keys(data), key => this.loggerDataOrder[key as keyof typeof this.loggerDataOrder]);
 
     let finalMessage = orderAttribute.map(key => {
+      if( data[key as keyof ILoggerData] instanceof Object) {
+        data[key  as keyof ILoggerData] = JSON.stringify(data[key as keyof ILoggerData], null, 2)
+      }
       return `${key}: ${data[key as keyof ILoggerData]}`;
     });
 

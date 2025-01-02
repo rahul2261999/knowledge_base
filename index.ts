@@ -8,7 +8,6 @@ import loggerService from "./utils/logger/logger.service";
 import router from "./apis/main.route";
 import * as swaggerJsDoc from 'swagger-jsdoc'
 import * as swaggerUi from 'swagger-ui-express';
-import mongodb_client from "./dbs/mongodb/mongodb_client";
 
 
 config()
