@@ -12,3 +12,5 @@ class UnAuthorized extends BaseError {
     );
   }
 }
+
+export default UnAuthorized;

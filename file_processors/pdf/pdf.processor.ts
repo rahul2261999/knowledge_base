@@ -11,7 +11,6 @@ class PdfProcessor extends AbstractFileProcessor {
     this.pdfLoader = new PDFLoader(params.filepathOrBlob, params.pdfLoaderOptions);
   }
 
-
   public async load(): Promise<IBaseFileProcessor> {
     try {
       const data = await this.pdfLoader.load();
