@@ -1,7 +1,6 @@
 import { Request, Response, Router } from "express";
 import loggerService from "../utils/logger/logger.service";
 import ingestionRouter from "./ingestion/ingestion.route";
-import retrivalRouter from "./retrival/retrival.router";
 
 const router = Router();
 
@@ -19,6 +18,5 @@ router.get('/health', (_: Request, res: Response) => {
 });
 
 router.use('/ingestion', ingestionRouter);
-router.use('/retrival', retrivalRouter);
 
 export default router;

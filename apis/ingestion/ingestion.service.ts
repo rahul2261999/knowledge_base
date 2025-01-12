@@ -9,7 +9,7 @@ import FileHelper from "../../utils/helper/file.util";
 import loggerService from "../../utils/logger/logger.service";
 import { ILoggerData } from "../../utils/logger/logger.type";
 import { IBulkUploadTrainingData, IDeleteTraininData, IIngestionMethods, IIngestionMethodsOptions, IUploadTrainingData } from "./ingestion.type";
-import ValidationSchema from "./ingestion.validation";
+import IngestionValidationSchema from "./ingestion.validation";
 import documentRepo from "../../dbs/mongodb/models/document/document.repo";
 import document_embeddingsRepo from "../../dbs/mongodb/models/document_embeddings/document_embeddings.repo";
 import mongoose from "mongoose";
@@ -36,7 +36,7 @@ class IngestionService implements IIngestionMethods {
     try {
       loggerService.info(loggerData);
 
-      const validation = ValidationSchema.uploadTrainingData.safeParse(params);
+      const validation = IngestionValidationSchema.uploadTrainingData.safeParse(params);
 
       if (!validation.success) {
         loggerService.error({ ...loggerData, message: 'validation failed', additionalArgs: validation.error });
@@ -107,7 +107,7 @@ class IngestionService implements IIngestionMethods {
     try {
       loggerService.info(loggerData);
 
-      const validation = ValidationSchema.bulkUploadTrainingData.safeParse(params);
+      const validation = IngestionValidationSchema.bulkUploadTrainingData.safeParse(params);
 
       if (!validation.success) {
         loggerService.error({ ...loggerData, message: 'validation failed' });
@@ -138,7 +138,7 @@ class IngestionService implements IIngestionMethods {
 
     try {
       loggerService.info(loggerData);
-      const validation = ValidationSchema.deleteTraininData.safeParse(params);
+      const validation = IngestionValidationSchema.deleteTraininData.safeParse(params);
 
       if (!validation.success) {
         throw new BadRequest(validation.error.message, { error: validation.error.issues })

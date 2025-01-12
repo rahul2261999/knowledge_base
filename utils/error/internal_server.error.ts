@@ -1,5 +1,5 @@
 import constant from "../../constants/constant";
-import { asyncLocalStorage } from "../helper/store.util";
+import loggerService from "../logger/logger.service";
 import BaseError from "./base.error";
 
 class InternalServer extends BaseError {
@@ -16,8 +16,8 @@ class InternalServer extends BaseError {
 
   public static fromError(error: any): BaseError {
     if (error.constructor.name === Error.name) {
-      const store = asyncLocalStorage.getStore();
-   
+      loggerService.error('', { error });
+
       return new InternalServer('Something went wrong')
     } else {
       return error as BaseError

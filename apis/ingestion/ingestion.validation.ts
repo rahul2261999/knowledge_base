@@ -1,5 +1,5 @@
 import { z } from 'zod'
-class ValidationSchema {
+class IngestionValidationSchema {
   private constructor() { };
 
   public static readonly trainingMetaData = z.object({
@@ -20,13 +20,13 @@ class ValidationSchema {
   })
 
   public static readonly uploadTrainingData = z.object({
-    file: ValidationSchema.MulterFile,
-    metaData: ValidationSchema.trainingMetaData
+    file: IngestionValidationSchema.MulterFile,
+    metaData: IngestionValidationSchema.trainingMetaData
   })
 
   public static readonly bulkUploadTrainingData = z.object({
-    files: z.array(ValidationSchema.MulterFile),
-    metaData: ValidationSchema.trainingMetaData
+    files: z.array(IngestionValidationSchema.MulterFile),
+    metaData: IngestionValidationSchema.trainingMetaData
   })
 
   public static readonly deleteTraininData = z.object({
@@ -36,4 +36,4 @@ class ValidationSchema {
   
 }
 
-export default ValidationSchema;
+export default IngestionValidationSchema;

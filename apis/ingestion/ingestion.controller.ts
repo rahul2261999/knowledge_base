@@ -4,6 +4,7 @@ import loggerService from "../../utils/logger/logger.service";
 import InternalServer from "../../utils/error/internal_server.error";
 import ingestionService from "./ingestion.service";
 import SuccessResponse from "../../utils/response/response.util";
+import * as fs from 'fs'
 
 export const createIngestTrainingData = async (request: Request, response: Response) => {
   const loggerData: ILoggerData = {
@@ -29,9 +30,21 @@ export const createIngestTrainingData = async (request: Request, response: Respo
     loggerData.message = "error executing";
     loggerService.error(loggerData);
 
-    const customError =  InternalServer.fromError(error);
+    const customError = InternalServer.fromError(error);
 
     response.status(customError.getStatusCode()).json(customError.toJson());
+  } finally {
+    if (request.file && request.file.path) {
+      fs.unlink(request.file.path, (err) => {
+        if (err) {
+          loggerData.message = "file not found";
+          loggerService.warn(loggerData, { error: err as Error })
+        } else {
+          loggerData.message = "file deleted successfully";
+          loggerService.info(loggerData)
+        }
+      });
+    }
   }
 }
 
@@ -56,7 +69,7 @@ export const deleteIngestTrainingData = async (request: Request, response: Respo
     loggerData.message = "error executing";
     loggerService.error(loggerData);
 
-    const customError =  InternalServer.fromError(error);
+    const customError = InternalServer.fromError(error);
 
     response.status(customError.getStatusCode()).json(customError.toJson());
   }
