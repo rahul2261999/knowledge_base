@@ -1,14 +1,47 @@
-import { IDocument } from "./document.type";
+import { IngestionStatus, S3Document } from "./document.type";
 import mongoVectoreStoreDb from "../../mongoose_client";
 import { Schema } from "mongoose";
 
-const docuemntSchema = new Schema<IDocument>({
-  name: { type: String, required: true },
-  tenantId: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
+const docuemntSchema = new Schema<S3Document>({
+  nameWithExtension: {
+    type: String,
+    required: true,
+  },
+  size: {
+    type: Number,
+    required: true
+  },
+  version: {
+    type: Number,
+    required: true
+  },
+  status: {
+    type: String,
+    enum: Object.values(IngestionStatus),
+    default: IngestionStatus.PENDING
+  },
+  url: {
+    type: String,
+    required: true
+  },
+  createdBy: {
+    type: Number,
+    required: true
+  },
+  tenantId: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  },
 })
 
-const document = mongoVectoreStoreDb.getConnection().model('documents', docuemntSchema);
+const S3Document = mongoVectoreStoreDb.getConnection().model('s3_documents', docuemntSchema);
 
-export default document;
+export default S3Document;

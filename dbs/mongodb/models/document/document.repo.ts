@@ -2,8 +2,8 @@ import { FilterQuery } from "mongoose";
 import InternalServer from "../../../../utils/error/internal_server.error";
 import loggerService from "../../../../utils/logger/logger.service";
 import { ILoggerData } from "../../../../utils/logger/logger.type";
-import { IDocument } from "./document.type";
 import document from "./document.model";
+import { CreateS3Document, S3Document } from "./document.type";
 
 class DocumentRepo {
   private static instance: DocumentRepo;
@@ -17,7 +17,7 @@ class DocumentRepo {
     return DocumentRepo.instance;
   }
 
-  public async create(doc: IDocument) {
+  public async create(doc: CreateS3Document) {
     const loggerData: ILoggerData = {
       serviceName: 'DocumentRepo',
       function: 'create',
@@ -39,7 +39,7 @@ class DocumentRepo {
   }
 
 
-  public async find(findOptions: FilterQuery<IDocument>) {
+  public async find(findOptions: FilterQuery<S3Document>) {
     const loggerData: ILoggerData = {
       serviceName: 'DocumentRepo',
       function: 'find',
@@ -81,7 +81,7 @@ class DocumentRepo {
     }
   }
 
-  public async deleteMany(findOptions: FilterQuery<IDocument>) {
+  public async deleteMany(findOptions: FilterQuery<S3Document>) {
     const loggerData: ILoggerData = {
       serviceName: 'DocumentRepo',
       function: 'deleteMany',

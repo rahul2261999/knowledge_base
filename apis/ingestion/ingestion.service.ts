@@ -1,4 +1,3 @@
-import { v4 } from "uuid";
 import { FileExtensions } from "../../constants/global.enum";
 import DocxProcessor from "../../file_processors/doc/doc.processor";
 import { IBaseFileProcessor } from "../../file_processors/index.type";
@@ -12,7 +11,7 @@ import { IBulkUploadTrainingData, IDeleteTraininData, IIngestionMethods, IIngest
 import IngestionValidationSchema from "./ingestion.validation";
 import documentRepo from "../../dbs/mongodb/models/document/document.repo";
 import document_embeddingsRepo from "../../dbs/mongodb/models/document_embeddings/document_embeddings.repo";
-import mongoose from "mongoose";
+import { CreateS3Document, IngestionStatus, S3Document } from "../../dbs/mongodb/models/document/document.type";
 
 class IngestionService implements IIngestionMethods {
   private static instance: IngestionService;
@@ -54,10 +53,18 @@ class IngestionService implements IIngestionMethods {
         throw new BadRequest(message)
       }
 
-      const newDocument = await documentRepo.create({
-        name: params.file.originalname,
-        tenantId: params.metaData.tenantId
-      });
+      const s3Docuemnt: CreateS3Document = {
+        url: params.file.path,
+        nameWithExtension: params.file.originalname,
+        size: params.file.size,
+        version: 0,
+        status: IngestionStatus.PENDING,
+        tenantId: params.metaData.tenantId,
+        createdBy: null,
+        updatedBy: null,
+      }
+
+      const newDocument = await documentRepo.create(s3Docuemnt);
 
       let fileProcessor: IBaseFileProcessor;
 
