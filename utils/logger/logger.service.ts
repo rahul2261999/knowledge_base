@@ -44,17 +44,16 @@ class LoggingService implements ILoggerServiceMethods {
     return finalMessage.join('--->')
   }
 
-  private getCorrelationId() {
+  private getTracingId() {
     const store = asyncLocalStorage.getStore();
-    const correlationId = store?.get('correlationId') ?? '-';
+    const tracingId = store?.get('tracingId') ?? null;
 
-    return correlationId;
+    return tracingId;
   }
 
   public info(message: ILoggerData | string): void {
-    
-
-    let formmatedMessage: string = `correlationId: ${this.getCorrelationId()} --> `;
+    const tracingId = this.getTracingId();
+    let formmatedMessage: string = tracingId ? `tracingId: ${this.getTracingId()} --> `: '';
 
     if (typeof message !== 'string') {
       formmatedMessage += this.formatter(message);
@@ -66,7 +65,8 @@ class LoggingService implements ILoggerServiceMethods {
   }
 
   public debug(message: ILoggerData | string): void {
-    let formmatedMessage: string = `correlationId: ${this.getCorrelationId()} --> `;
+    const tracingId = this.getTracingId();
+    let formmatedMessage: string = tracingId ? `tracingId: ${this.getTracingId()} --> `: '';
 
     if (typeof message !== 'string') {
       formmatedMessage += this.formatter(message);
@@ -78,7 +78,9 @@ class LoggingService implements ILoggerServiceMethods {
   }
 
   public warn(message: ILoggerData | string | null, option?: { error?: Error; }): void {
-    let formmatedMessage: string = `correlationId: ${this.getCorrelationId()} --> `;
+    const tracingId = this.getTracingId();
+    let formmatedMessage: string = tracingId ? `tracingId: ${this.getTracingId()} --> `: '';
+
 
     if (message !== null) {
       if (typeof message !== 'string') {
@@ -92,10 +94,7 @@ class LoggingService implements ILoggerServiceMethods {
   }
 
   public error(message: ILoggerData | string | null, option?: { error?: Error; }): void {
-    const store = asyncLocalStorage.getStore();
-    const correlationId = store?.get('correlationId') ?? '-';
-
-    let formmatedMessage: string = `correlationId: ${this.getCorrelationId()} --> `;
+    let formmatedMessage: string = `tracingId: ${this.getTracingId()} --> `;
 
     if (message !== null) {
       if (typeof message !== 'string') {

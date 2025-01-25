@@ -46,8 +46,7 @@ class WinstonService implements ILoggerClientMethods {
     args.forEach(args => this.winston.warn(args))
   }
   public error(...args: any[]): void {
-    args.forEach(args => args && this.winston.error(args))
-
+    args.forEach(args => args && this.winston.error(args.toString()))
   }
 
 }

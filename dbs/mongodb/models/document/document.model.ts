@@ -3,6 +3,10 @@ import mongoVectoreStoreDb from "../../mongoose_client";
 import { Schema } from "mongoose";
 
 const docuemntSchema = new Schema<S3Document>({
+  tenantId: {
+    type: String,
+    required: true
+  },
   nameWithExtension: {
     type: String,
     required: true,
@@ -26,11 +30,9 @@ const docuemntSchema = new Schema<S3Document>({
   },
   createdBy: {
     type: Number,
-    required: true
   },
-  tenantId: {
-    type: String,
-    required: true
+  updatedBy: {
+    type: Number
   },
   createdAt: {
     type: Date,
