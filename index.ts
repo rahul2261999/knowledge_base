@@ -3,11 +3,12 @@ import constant from "./constants/constant";
 import * as cors from 'cors'
 import { config } from "dotenv";
 import { v4 } from "uuid";
-import { asyncLocalStorage } from "./utils/helper/store.util";
 import loggerService from "./utils/logger/logger.service";
 import router from "./apis/main.route";
 import * as swaggerJsDoc from 'swagger-jsdoc'
 import * as swaggerUi from 'swagger-ui-express';
+import { asyncContextStore } from "./utils/helper/async_context_store.util";
+import { fileProcessorEvents } from "./events/file_processor.service";
 
 
 config()
@@ -22,11 +23,11 @@ class Application {
   }
 
   private configAsyncStore(request: express.Request, response: express.Response, next: express.NextFunction) {
-    const correlationId = v4();
-    const store = new Map<string, string>();
-    store.set('correlationId', correlationId);
+    const tracingId = v4();
 
-    asyncLocalStorage.run(store, () => {
+    asyncContextStore.runContext({}, () => {
+      asyncContextStore.setTraceId(tracingId);
+
       next()
     })
   }
@@ -82,6 +83,8 @@ class Application {
 
     this.app.listen(this.port, () => {
       loggerService.info('server running on port ' + this.port);
+
+      fileProcessorEvents.intilizeEventListeners();
     })
   }
 }

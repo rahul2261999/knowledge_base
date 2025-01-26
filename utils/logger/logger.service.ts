@@ -2,7 +2,7 @@ import { sortBy } from "lodash";
 import { ELoggerDataOrder } from "./logger.enum";
 import { ILoggerClientMethods, ILoggerData, ILoggerServiceMethods } from "./logger.type";
 import winstonService from "./winston/winston.service";
-import { asyncLocalStorage } from "../helper/store.util";
+import { asyncContextStore } from "../helper/async_context_store.util";
 
 
 class LoggingService implements ILoggerServiceMethods {
@@ -45,8 +45,7 @@ class LoggingService implements ILoggerServiceMethods {
   }
 
   private getTracingId() {
-    const store = asyncLocalStorage.getStore();
-    const tracingId = store?.get('tracingId') ?? null;
+    const tracingId = asyncContextStore.getTraceId();
 
     return tracingId;
   }

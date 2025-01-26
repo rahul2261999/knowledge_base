@@ -1,5 +1,5 @@
 import constant from "../../constants/constant";
-import { asyncLocalStorage } from "../helper/store.util";
+import { asyncContextStore } from "../helper/async_context_store.util";
 
 class SuccessResponse<T> {
   public correlationId: string | null;
@@ -8,7 +8,7 @@ class SuccessResponse<T> {
   public data: T | null;
 
   constructor(message: string, options?: Partial<{ statusCode: number, data: T }>) {
-    const store = asyncLocalStorage.getStore();
+    const store = asyncContextStore.getStore();
 
     this.correlationId = store?.get("correlationId") ?? null;
     this.message = message;

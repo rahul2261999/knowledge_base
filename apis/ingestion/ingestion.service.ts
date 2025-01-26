@@ -1,6 +1,6 @@
 import { FileExtensions } from "../../constants/global.enum";
 import DocxProcessor from "../../file_processors/doc/doc.processor";
-import { IBaseFileProcessor } from "../../file_processors/index.type";
+import { EFileProcessorEvents, IBaseFileProcessor } from "../../file_processors/index.type";
 import PdfProcessor from "../../file_processors/pdf/pdf.processor";
 import BadRequest from "../../utils/error/bad_request";
 import InternalServer from "../../utils/error/internal_server.error";
@@ -12,6 +12,9 @@ import IngestionValidationSchema from "./ingestion.validation";
 import documentRepo from "../../dbs/mongodb/models/document/document.repo";
 import document_embeddingsRepo from "../../dbs/mongodb/models/document_embeddings/document_embeddings.repo";
 import { CreateS3Document, IngestionStatus, S3Document } from "../../dbs/mongodb/models/document/document.type";
+import { fileProcessorEvents } from "../../events/file_processor.service";
+import { asyncContextStore } from "../../utils/helper/async_context_store.util";
+import { v4 } from "uuid";
 
 class IngestionService implements IIngestionMethods {
   private static instance: IngestionService;
@@ -82,15 +85,12 @@ class IngestionService implements IIngestionMethods {
         throw new BadRequest(message)
       }
 
-      await fileProcessor.load();
-      await fileProcessor.split();
-      await fileProcessor.store({
-        fileMetaData: {
-          ...params.metaData,
-          documentId: newDocument._id.toString()
-        },
-      });
-
+      fileProcessorEvents.emitEvent(EFileProcessorEvents.PROCESS_INCOMING_FILE, {
+        tracingId: asyncContextStore.getTraceId() || v4(),
+        filePath: params.file.path,
+        tenantId: params.metaData.tenantId,
+        documentId: newDocument._id.toString(),
+      })
       loggerData.message = "execution completed"
       loggerService.info(loggerData);
 

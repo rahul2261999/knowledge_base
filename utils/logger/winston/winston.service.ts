@@ -28,7 +28,8 @@ class WinstonService implements ILoggerClientMethods {
         Winston.format.colorize({
           all: true,
         }),
-        Winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+        Winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`),
+        Winston.format.errors({ stack: true })
       ),
       transports: [
         new Winston.transports.Console(),
@@ -46,7 +47,7 @@ class WinstonService implements ILoggerClientMethods {
     args.forEach(args => this.winston.warn(args))
   }
   public error(...args: any[]): void {
-    args.forEach(args => args && this.winston.error(args.toString()))
+    args.forEach(args => args && this.winston.error(args))
   }
 
 }

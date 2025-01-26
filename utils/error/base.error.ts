@@ -1,4 +1,4 @@
-import { asyncLocalStorage } from "../helper/store.util";
+import { asyncContextStore } from "../helper/async_context_store.util";
 
 abstract class BaseError extends Error {
   protected correlationId: string | null;
@@ -8,7 +8,7 @@ abstract class BaseError extends Error {
 
   constructor(message: string, statusCode: number, options?: { error: any[] }) {
     super(message);
-    const store = asyncLocalStorage.getStore();
+    const store = asyncContextStore.getStore();
     this.name = this.constructor.name;
     this.correlationId = store?.get("correlationId") ?? null;
     this.statusCode = statusCode;

@@ -38,6 +38,26 @@ class DocumentRepo {
     }
   }
 
+  public async findOne(findOptions: FilterQuery<S3Document>) {
+    const loggerData: ILoggerData = {
+      serviceName: 'DocumentRepo',
+      function: 'findOne',
+      message: 'executing'
+    }
+    try {
+      loggerService.info(loggerData);
+      const doc = await document.findOne(findOptions);
+
+      loggerData.message = 'execution complete'
+      loggerService.info(loggerData);
+
+      return doc;
+    } catch (error) {
+      loggerService.error(loggerData, { error: error as Error });
+
+      throw new InternalServer("Something went wrong")
+    }
+  }
 
   public async find(findOptions: FilterQuery<S3Document>) {
     const loggerData: ILoggerData = {
@@ -47,7 +67,7 @@ class DocumentRepo {
     }
     try {
       loggerService.info(loggerData);
-      const doc = await document.find({ findOptions });
+      const doc = await document.find(findOptions);
 
       loggerData.message = 'execution complete'
       loggerService.info(loggerData);
