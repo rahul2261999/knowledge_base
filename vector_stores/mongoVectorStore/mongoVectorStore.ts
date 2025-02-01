@@ -5,19 +5,26 @@ import mistralEmbeddings from "../../embeddings/mistral_embeddings";
 import { BaseVectorStore, BaseGetRetriver } from "../base.interface";
 import { ILoggerData } from "../../utils/logger/logger.type";
 import loggerService from "../../utils/logger/logger.service";
-import mongoVectoreStoreDb from "../../dbs/mongodb/mongoose_client";
+import mongodbClient from "../../dbs/mongodb/mongodb-client";
 
 class MongoVectorStore implements BaseVectorStore {
 
   public static instance: MongoVectorStore;
 
-  private vectorStore: MongoDBAtlasVectorSearch;
+  private vectorStore!: MongoDBAtlasVectorSearch;
 
   private constructor() {
+    this.init()
+  }
+
+  private async init () {
+    const mongoClient = await mongodbClient.getInstance();
+    const collection = mongoClient.getCollection(constant.mongo.collection)
+
     this.vectorStore = new MongoDBAtlasVectorSearch(
       mistralEmbeddings,
       {
-        collection: mongoVectoreStoreDb.getCollection(constant.mongo.collection),
+        collection,
         indexName: 'mistral',
         embeddingKey: 'embedding',
         textKey: 'text'

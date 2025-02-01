@@ -10,7 +10,7 @@ class SuccessResponse<T> {
   constructor(message: string, options?: Partial<{ statusCode: number, data: T }>) {
     const store = asyncContextStore.getStore();
 
-    this.correlationId = store?.get("correlationId") ?? null;
+    this.correlationId = asyncContextStore.getTraceId() ?? null;
     this.message = message;
     this.statusCode = options?.statusCode ?? constant.statusCodes.OK;
     this.data = options?.data ?? null;

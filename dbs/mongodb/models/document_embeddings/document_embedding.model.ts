@@ -1,6 +1,5 @@
 import { model, Schema } from "mongoose";
 import { IDocumentEmbedding } from "./document_embedding.type";
-import mongoVectoreStoreDb from "../../mongoose_client";
 
 const documentEmbeddingSchema = new Schema<IDocumentEmbedding>({
   text: { type: String, required: true },
@@ -13,6 +12,6 @@ const documentEmbeddingSchema = new Schema<IDocumentEmbedding>({
 });
 
 
-const docuemntEmbedding = mongoVectoreStoreDb.getConnection().model('document_embeddings', documentEmbeddingSchema);
+const docuemntEmbedding = model('document_embeddings', documentEmbeddingSchema);
 
 export default docuemntEmbedding;

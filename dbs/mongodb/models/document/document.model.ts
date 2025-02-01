@@ -1,6 +1,5 @@
 import { IngestionStatus, S3Document } from "./document.type";
-import mongoVectoreStoreDb from "../../mongoose_client";
-import { Schema } from "mongoose";
+import { model, Schema } from "mongoose";
 
 const docuemntSchema = new Schema<S3Document>({
   tenantId: {
@@ -44,6 +43,6 @@ const docuemntSchema = new Schema<S3Document>({
   },
 })
 
-const S3Document = mongoVectoreStoreDb.getConnection().model('s3_documents', docuemntSchema);
+const S3Document = model('s3_documents', docuemntSchema);
 
 export default S3Document;
