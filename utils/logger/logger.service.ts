@@ -14,7 +14,6 @@ class LoggingService implements ILoggerServiceMethods {
     this.loggerClient = loggerCient;
     
     this.loggerDataOrder = {
-      correlationId: ELoggerDataOrder.correlationId,
       controller: ELoggerDataOrder.controller,
       serviceName: ELoggerDataOrder.serviceName,
       function: ELoggerDataOrder.function,

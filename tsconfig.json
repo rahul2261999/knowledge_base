@@ -3,7 +3,7 @@
     "incremental": true, /* Save .tsbuildinfo files to allow for incremental compilation of projects. */
     "target": "es2016", /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
     "module": "commonjs", /* Specify what module code is generated. */
-    "sourceMap": false, /* Create source map files for emitted JavaScript files. */
+    "sourceMap": true, /* Create source map files for emitted JavaScript files. */
     "outDir": "build", /* Specify an output folder for all emitted files. */
     "removeComments": true, /* Disable emitting comments. */
     "newLine": "lf", /* Set the newline character for emitting files. */

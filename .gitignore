@@ -5,3 +5,4 @@ training_data
 .env
 launch.json
 uploads
+logs
