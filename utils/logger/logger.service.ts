@@ -40,7 +40,7 @@ class LoggingService implements ILoggerServiceMethods {
       return `${key}: ${data[key as keyof ILoggerData]}`;
     });
 
-    return finalMessage.join('--->')
+    return finalMessage.join(' ---> ')
   }
 
   private getTracingId() {

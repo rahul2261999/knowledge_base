@@ -13,9 +13,7 @@ class MongoVectorStore implements BaseVectorStore {
 
   private vectorStore!: MongoDBAtlasVectorSearch;
 
-  private constructor() {
-    this.init()
-  }
+  private constructor() {}
 
   private async init () {
     const mongoClient = await mongodbClient.getInstance();
@@ -32,9 +30,10 @@ class MongoVectorStore implements BaseVectorStore {
     );
   }
    
-  public static getInstance(): MongoVectorStore {
+  public static async getInstance(): Promise<MongoVectorStore> {
     if (!MongoVectorStore.instance) {
       MongoVectorStore.instance = new MongoVectorStore();
+      await MongoVectorStore.instance.init()
     }
     return MongoVectorStore.instance;
   }
@@ -64,6 +63,10 @@ class MongoVectorStore implements BaseVectorStore {
     
     return this.vectorStore.asRetriever(kfileds, filter)
   }
+
+  public getStore() {
+    return this.vectorStore;
+  }
 }
 
-export default MongoVectorStore.getInstance();
+export default MongoVectorStore;

@@ -76,7 +76,7 @@ abstract class AbstractFileProcessor implements IBaseFileProcessor {
         return doc
       });
 
-      const vectorStore = options?.storeInstance || mongoVectorStore;
+      const vectorStore = options?.storeInstance || await mongoVectorStore.getInstance();
 
       await vectorStore.addDocuments(documents);
 
