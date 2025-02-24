@@ -4,7 +4,7 @@ config();
 
 export default Object.freeze({
   app: {
-    port: Number(process.env.PORT) || 5008
+    port: Number(process.env.PORT) || 5010
   },
   model: {
     name: "open-mistral-nemo",

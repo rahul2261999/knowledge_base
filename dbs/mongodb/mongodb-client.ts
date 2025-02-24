@@ -1,6 +1,7 @@
 import constant from '../../constants/constant';
 import mongoose from 'mongoose';
 import InternalServer from '../../utils/error/internal_server.error';
+import loggerService from '../../utils/logger/logger.service';
 
 class MongoDbClient {
   private static instance: MongoDbClient;
@@ -10,7 +11,9 @@ class MongoDbClient {
   public static async getInstance(): Promise<MongoDbClient> {
     if (!MongoDbClient.instance) {
       MongoDbClient.instance = new MongoDbClient();
-      await MongoDbClient.instance.connect();
+      await MongoDbClient.instance.connect()
+        .then(() => loggerService.info("mongodb connection established"))
+        .catch(err => loggerService.error(err.message, { error: err }));
     }
     return MongoDbClient.instance;
   }
@@ -20,7 +23,7 @@ class MongoDbClient {
   }
 
   public getCollection(collectionName: string) {
-    if(!mongoose.connection.db) {
+    if (!mongoose.connection.db) {
       throw new InternalServer('Database not initialized. Ensure getInstance() is awaited.')
     }
 

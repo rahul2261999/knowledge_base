@@ -8,4 +8,4 @@ ingestionRouter.post('/training', multerService.getUpload().single('file'), crea
 ingestionRouter.delete('/training', deleteIngestTrainingData)
 
 
-export default ingestionRouter;
+export { ingestionRouter };

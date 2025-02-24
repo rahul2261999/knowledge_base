@@ -9,6 +9,7 @@ import * as swaggerJsDoc from 'swagger-jsdoc'
 import * as swaggerUi from 'swagger-ui-express';
 import { asyncContextStore } from "./utils/helper/async_context_store.util";
 import { fileProcessorEvents } from "./events/file_processor.service";
+import MongoDbClient from "./dbs/mongodb/mongodb-client";
 
 
 config()
@@ -16,7 +17,7 @@ config()
 class Application {
   private static instance: Application;
   private app: express.Express;
-  private port = constant.app.port || 5010
+  private port = constant.app.port
 
   private constructor() {
     this.app = express();
@@ -40,6 +41,7 @@ class Application {
   }
 
   private async initlizeDatabase() {
+    await MongoDbClient.getInstance()
   }
 
   private routers() {

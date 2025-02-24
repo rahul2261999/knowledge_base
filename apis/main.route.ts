@@ -1,6 +1,7 @@
 import { Request, Response, Router } from "express";
 import loggerService from "../utils/logger/logger.service";
-import ingestionRouter from "./ingestion/ingestion.route";
+import { ingestionRouter } from "./ingestion/ingestion.route";
+import { bucketRouter } from "./bucket/bucket.route";
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.get('/health', (_: Request, res: Response) => {
 });
 
 router.use('/ingestion', ingestionRouter);
+router.use('/bucket', bucketRouter)
 
 export default router;
