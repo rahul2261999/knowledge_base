@@ -1,4 +1,3 @@
-
 export interface Crawling {
   crawlingSessionId: string;
   url: URL;
@@ -14,6 +13,6 @@ export interface ExtractedUrl {
 
 export interface CrawlContentQueuePayload {
   url: string;
-  crawlingSessionId: string,
-  crawlingUrlId: string,
+  crawlingSessionId: string;
+  crawlingUrlId: string;
 }

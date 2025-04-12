@@ -1,6 +1,14 @@
-import { BadRequestException, InternalServerErrorException, Logger } from "@nestjs/common";
-import { SiteMapIndexes, SiteMaps, SiteMapServiceMethods } from "./sitemap.interface";
-import { Parser } from "xml2js";
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
+import {
+  SiteMapIndexes,
+  SiteMaps,
+  SiteMapServiceMethods,
+} from './sitemap.interface';
+import { Parser } from 'xml2js';
 
 class Sitemap implements SiteMapServiceMethods {
   private url: URL;
@@ -22,20 +30,25 @@ class Sitemap implements SiteMapServiceMethods {
       sitemap.sitemap = await sitemap.fetch();
 
       Logger.log('executed: Sitemap -> fromUrl');
-      
+
       return sitemap;
     } catch (error) {
       Logger.error('failed: Sitemap -> fromUrl');
-      Logger.error(error, error?.stack)
-      
-      throw new InternalServerErrorException('Failed to create sitemap from URL', {
-        cause: error,
-        description: error.message,
-      });
+      Logger.error(error, error?.stack);
+
+      throw new InternalServerErrorException(
+        'Failed to create sitemap from URL',
+        {
+          cause: error,
+          description: error.message,
+        },
+      );
     }
   }
 
-  private async fetch(url?: URL): Promise<SiteMapIndexes | SiteMaps | undefined> {
+  private async fetch(
+    url?: URL,
+  ): Promise<SiteMapIndexes | SiteMaps | undefined> {
     try {
       Logger.log('executing: Sitemap -> fetch');
 
@@ -45,32 +58,37 @@ class Sitemap implements SiteMapServiceMethods {
 
       const response = await fetch(sitemapUrl);
 
-      if(!response.ok) {
-       Logger.debug(`Failed to fetch sitemap from ${sitemapUrl}. Status code: ${response.status}`);
+      if (!response.ok) {
+        Logger.debug(
+          `Failed to fetch sitemap from ${sitemapUrl}. Status code: ${response.status}`,
+        );
 
-       return undefined;
+        return undefined;
       }
 
       const sitemapContent = await response.text();
 
-      const xmlParser = new Parser({ 
-        explicitArray: false, 
+      const xmlParser = new Parser({
+        explicitArray: false,
         strict: false,
-        tagNameProcessors: [name => name.toLowerCase()] 
+        tagNameProcessors: [(name) => name.toLowerCase()],
       });
       const parsedData = await xmlParser.parseStringPromise(sitemapContent);
 
       Logger.log('executed: Sitemap -> fetch');
 
-      return parsedData
+      return parsedData;
     } catch (error) {
       Logger.error('failed: Sitemap -> fromUrl');
       Logger.error(error.message, error.stack);
 
-      throw new InternalServerErrorException('something went wrong while fetching the sitemap', {
-        cause: error,
-        description: error.message,
-      })
+      throw new InternalServerErrorException(
+        'something went wrong while fetching the sitemap',
+        {
+          cause: error,
+          description: error.message,
+        },
+      );
     }
   }
 
@@ -79,7 +97,12 @@ class Sitemap implements SiteMapServiceMethods {
 
     const siteMapIndexes = this.sitemap as SiteMapIndexes;
 
-    if (siteMapIndexes && siteMapIndexes.sitemapindex && siteMapIndexes.sitemapindex.sitemap && siteMapIndexes.sitemapindex.sitemap.length > 0) {
+    if (
+      siteMapIndexes &&
+      siteMapIndexes.sitemapindex &&
+      siteMapIndexes.sitemapindex.sitemap &&
+      siteMapIndexes.sitemapindex.sitemap.length > 0
+    ) {
       return true;
     }
 
@@ -93,20 +116,25 @@ class Sitemap implements SiteMapServiceMethods {
 
     const siteMaps = this.sitemap as SiteMaps;
 
-    if (siteMaps && siteMaps.urlset && siteMaps.urlset.url && siteMaps.urlset.url.length > 0) {
+    if (
+      siteMaps &&
+      siteMaps.urlset &&
+      siteMaps.urlset.url &&
+      siteMaps.urlset.url.length > 0
+    ) {
       return true;
     }
 
     Logger.log('executed: Sitemap -> checkSiteMaps');
 
-    return false
+    return false;
   }
 
   public getSiteMapIndexes(): SiteMapIndexes | null {
     Logger.log('executing: Sitemap -> getSiteMapIndexes');
 
     const sitemapIndexesExist = this.checkSiteMapIndexes();
-    let sitemapIndexes: SiteMapIndexes | null = null
+    let sitemapIndexes: SiteMapIndexes | null = null;
 
     if (sitemapIndexesExist) {
       sitemapIndexes = this.sitemap as SiteMapIndexes;
@@ -120,7 +148,7 @@ class Sitemap implements SiteMapServiceMethods {
     Logger.log('executing: Sitemap -> getSiteMaps');
 
     const sitemapsExist = this.checkSiteMaps();
-    let sitemaps: SiteMaps | null = null
+    let sitemaps: SiteMaps | null = null;
 
     if (sitemapsExist) {
       sitemaps = this.sitemap as SiteMaps;

@@ -1,13 +1,13 @@
 export interface SitemapEntry {
   loc: string;
-  lastmod?: string
+  lastmod?: string;
 }
 
 export interface SiteMapIndexes {
   sitemapindex: {
     $: object;
-    sitemap: SitemapEntry[]
-  }
+    sitemap: SitemapEntry[];
+  };
 }
 
 export interface SiteMapUrl {
@@ -20,8 +20,8 @@ export interface SiteMapUrl {
 export interface SiteMaps {
   urlset: {
     $: object;
-    url: SiteMapUrl[]
-  }
+    url: SiteMapUrl[];
+  };
 }
 
 export interface FetchMethod {
@@ -29,7 +29,7 @@ export interface FetchMethod {
 }
 
 export interface SiteMapServiceMethods {
-  checkSiteMapIndexes(): boolean
+  checkSiteMapIndexes(): boolean;
   checkSiteMaps(): boolean;
 
   getSiteMapIndexes(): SiteMapIndexes | null;

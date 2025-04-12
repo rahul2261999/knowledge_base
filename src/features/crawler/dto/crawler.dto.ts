@@ -1,12 +1,19 @@
 import { Transform } from 'class-transformer';
-import { IsOptional, IsString, IsUrl, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsUrl,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 
 export class CrawlDto {
   @IsString({
     always: true,
     message: 'webiste Id is required and must be a string',
   })
-  websiteId: string
+  websiteId: string;
 
   @IsString({
     always: true,
@@ -19,6 +26,6 @@ export class CrawlDto {
   @Min(1)
   @Max(5)
   @IsNumber()
-  @Transform(({ value }) => value === undefined ? 2 : value)
+  @Transform(({ value }) => (value === undefined ? 2 : value))
   depth: number;
 }

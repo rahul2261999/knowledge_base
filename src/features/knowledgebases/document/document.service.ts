@@ -4,7 +4,7 @@ import { UpdateDocumentDto } from './dto/update-document.dto';
 import { LoggingService } from 'src/lib/logger/logger.service';
 import { DocumentRepo } from './document.repo';
 import { ILoggerData } from 'src/lib/logger/logger.type';
-import { KnowledgebaseIdParamDto } from './dto/id-param.dto';
+import { DocumentBaseParamsDto } from './dto/base-param.dto';
 import { KnowledgebasesService } from '../knowledgebases.service';
 import { Document } from './schema/document.schema';
 import { AwsS3Service } from 'src/lib/aws_s3/aws-s3.service';
@@ -25,10 +25,11 @@ export class DocumentService {
     private readonly awsS3Service: AwsS3Service,
     private readonly configurationService: ConfigurationService,
     private readonly pineconeVectorService: PineconeVectorStoreService,
-  ) { }
+  ) {}
 
   public async create(
     file: Express.Multer.File,
+    tenantId: string,
     knowledgebaseId: string,
     createDocumentDto: CreateDocumentDto,
   ) {
@@ -52,9 +53,10 @@ export class DocumentService {
       );
 
       const createDocumeent: Document = {
+        tenantId,
         knowledgebaseId,
         name: file.originalname,
-        bucketName: createDocumentDto.bucketName,
+        tag: createDocumentDto.tag,
         size: file.size,
         processingStatus: ProcessingStatus.UPLOADED,
         url: key,
@@ -104,7 +106,7 @@ export class DocumentService {
       this.loggerService.info(loggerData);
 
       const documents = await this.documentRepo.find({
-        knowledgebaseId
+        knowledgebaseId,
       });
 
       this.loggerService.info({
@@ -195,9 +197,7 @@ export class DocumentService {
       const document = await this.documentRepo.findOne(filter);
 
       if (!document) {
-        throw new NotFound(
-          `Document not found`,
-        );
+        throw new NotFound(`Document not found`);
       }
 
       await this.documentRepo.update({ _id: document._id }, values);
@@ -234,7 +234,7 @@ export class DocumentService {
       const pineconeNamespace = await this.pineconeVectorService.getNamespace(
         document.knowledgebaseId,
       );
-      
+
       await pineconeNamespace.deleteDocuments({
         prefix: `${document._id.toString()}#`,
       });

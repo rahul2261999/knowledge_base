@@ -15,7 +15,7 @@ export class FileTypeValidator extends FileValidator {
   }
 
   isValid(
-    file?: IFile | IFile[] | Record<string, IFile[]> | undefined,
+    file?: IFile | IFile[] | Record<string, IFile[]>,
   ): boolean | Promise<boolean> {
     if (!file) return false;
 

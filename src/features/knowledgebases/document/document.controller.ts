@@ -13,7 +13,7 @@ import {
 import { DocumentService } from './document.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { KnowledgebaseIdParamDto } from './dto/id-param.dto';
+import { DocumentBaseParamsDto } from './dto/base-param.dto';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import SuccessResponse from 'src/core/response/response.util';
 import { TriggerService } from 'src/features/events/trigger/triggers.service';
@@ -52,15 +52,16 @@ export class DocumentController {
     )
     file: Express.Multer.File,
 
-    @Param() params: KnowledgebaseIdParamDto,
+    @Param() params: DocumentBaseParamsDto,
     @Body() createDocumentDto: CreateDocumentDto,
   ) {
     const data = await this.documentService.create(
       file,
+      params.tenantId,
       params.knowledgebaseId,
       createDocumentDto,
     );
-    
+
     this.ingestionTriggerService.emitEvent(
       EFileProcessorEvents.PROCESS_INCOMING_FILE,
       {

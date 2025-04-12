@@ -1,62 +1,63 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import mongoose, { HydratedDocument } from "mongoose";
-import { CrawlingSessionStatus } from "src/core/constants/global.enum";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
+import { CrawlingSessionStatus } from 'src/core/constants/global.enum';
 
 @Schema({
   timestamps: true,
-  collection: 'crawling_sessions'
+  collection: 'crawling_sessions',
 })
 export class CrawlingSession {
   @Prop({
     type: String,
-    required: true
+    required: true,
   })
-  websiteId: String;
+  websiteId: string;
 
   @Prop({
     type: Number,
     required: true,
-    default: 0
+    default: 0,
   })
-  totalUrls: number
+  totalUrls: number;
 
   @Prop({
     type: Number,
-    required: true
+    required: true,
   })
-  urlsCrawled: number | null
+  urlsCrawled: number | null;
 
   @Prop({
     enum: CrawlingSessionStatus,
-    default: CrawlingSessionStatus.IN_PROGRESS
+    default: CrawlingSessionStatus.IN_PROGRESS,
   })
   status: CrawlingSessionStatus;
 
   @Prop({
     type: String,
-    default: null
+    default: null,
   })
   failureReason: JSON | string | null;
 
   @Prop({
     type: Boolean,
     required: true,
-    default: true
+    default: true,
   })
-  active: boolean
+  active: boolean;
 
   @Prop({
     type: Date,
-    default: Date.now
+    default: Date.now,
   })
   createdAt?: Date;
 
   @Prop({
     type: Date,
-    default: Date.now
+    default: Date.now,
   })
   updatedAt?: Date;
 }
 
 export type CrawlingSessionDocument = HydratedDocument<CrawlingSession>;
-export const CrawlingSessionSchema = SchemaFactory.createForClass(CrawlingSession);
+export const CrawlingSessionSchema =
+  SchemaFactory.createForClass(CrawlingSession);

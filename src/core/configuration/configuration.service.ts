@@ -1,11 +1,13 @@
-import { Injectable, InternalServerErrorException, LoggerService } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  LoggerService,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ConfigurationService {
-  constructor(
-    private readonly configService: ConfigService,
-  ) { }
+  constructor(private readonly configService: ConfigService) {}
 
   getMongoUri() {
     const uri = this.configService.get<string>('MONGODB_ATLAS_URI');
@@ -62,7 +64,9 @@ export class ConfigurationService {
   }
 
   getQueueNames() {
-    const queues = this.configService.get<{ FileProcessingQueue: string }>('AwsSqs.Queues')!;
+    const queues = this.configService.get<{ FileProcessingQueue: string }>(
+      'AwsSqs.Queues',
+    )!;
 
     return queues;
   }

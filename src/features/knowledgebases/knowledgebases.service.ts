@@ -9,6 +9,9 @@ import { PineconeVectorStoreService } from 'src/lib/vector_store/pinecone/pineco
 import { FetchedVectorDocument } from 'src/lib/vector_store/pinecone/types/pinecone.type';
 import BadRequest from 'src/core/error/bad-request';
 import { DeleteResult } from 'mongoose';
+import { Status } from 'src/core/constants/global.enum';
+import { BaseParamsDto } from './dto/base-params.dto';
+import { Knowledgebase } from './schema/knowledgebase.schema';
 
 @Injectable()
 export class KnowledgebasesService {
@@ -16,9 +19,12 @@ export class KnowledgebasesService {
     private readonly loggerService: LoggingService,
     private readonly knowledgebaseRepo: KnowledgebaseRepo,
     private readonly pineconeVectorService: PineconeVectorStoreService,
-  ) { }
+  ) {}
 
-  public async create(createKnowledgebaseDto: CreateKnowledgebaseDto) {
+  public async create(
+    tenantId: string,
+    createKnowledgebaseDto: CreateKnowledgebaseDto,
+  ) {
     const loggerData: ILoggerData = {
       serviceName: 'KnowledgebasesService',
       function: 'create',
@@ -28,15 +34,13 @@ export class KnowledgebasesService {
     try {
       this.loggerService.info(loggerData);
 
-      const knowledgebase = await this.findOne(createKnowledgebaseDto.knowledgebaseId).catch(() => null);
-
-      if (knowledgebase) {
-        throw new BadRequest('Knowledgebase already exists. knowledgebaseId must be unique')
-      }
-
-      const createdknowledgebase = await this.knowledgebaseRepo.create(
-        createKnowledgebaseDto,
-      );
+      const createdknowledgebase = await this.knowledgebaseRepo.create({
+        ...createKnowledgebaseDto,
+        tenantId,
+        status: Status.ACTIVE,
+        createdBy: '1',
+        updatedBy: '1',
+      });
 
       this.loggerService.info({ ...loggerData, message: 'executed' });
 
@@ -48,7 +52,7 @@ export class KnowledgebasesService {
     }
   }
 
-  public async findAll() {
+  public async findAll(knowledgebase: Partial<Knowledgebase>) {
     const loggerData: ILoggerData = {
       serviceName: 'KnowledgebasesService',
       function: 'findAll',
@@ -58,7 +62,7 @@ export class KnowledgebasesService {
     try {
       this.loggerService.info(loggerData);
 
-      const knowledgebases = await this.knowledgebaseRepo.find({});
+      const knowledgebases = await this.knowledgebaseRepo.find(knowledgebase);
 
       this.loggerService.info({ ...loggerData, message: 'executed' });
 
@@ -111,7 +115,7 @@ export class KnowledgebasesService {
       const knowledgebase = await this.findOne(knowledgebaseId);
 
       const knowledgebases = await this.knowledgebaseRepo.delete({
-        _id: knowledgebase._id
+        _id: knowledgebase._id,
       });
 
       this.loggerService.info({ ...loggerData, message: 'executed' });

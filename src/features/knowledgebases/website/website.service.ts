@@ -16,10 +16,10 @@ export class WebsiteService {
     private readonly loggerService: LoggingService,
     private readonly websiteRepository: WebsiteRepo,
     private readonly knowledgeService: KnowledgebasesService,
-  ) {
-  }
+  ) {}
 
   public async create(
+    tenantId: string,
     knowledgebaseId: string,
     createWebsiteDto: CreateWebsiteDto,
   ) {
@@ -35,6 +35,7 @@ export class WebsiteService {
       await this.knowledgeService.findOne(knowledgebaseId);
 
       const createWebsite: Website = {
+        tenantId,
         knowledgebaseId,
         url: createWebsiteDto.url,
         depth: createWebsiteDto.depth,
@@ -70,7 +71,7 @@ export class WebsiteService {
       this.loggerService.info(loggerData);
 
       const websites = await this.websiteRepository.find({
-        knowledgebaseId
+        knowledgebaseId,
       });
 
       this.loggerService.info({

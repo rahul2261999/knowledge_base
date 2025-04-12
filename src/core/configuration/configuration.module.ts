@@ -38,9 +38,7 @@ import yaml from 'js-yaml';
       ],
       validationSchema: Joi.object({
         // ========== .env config ==============
-        NODE_ENV: Joi.string()
-          .valid('dev', 'staging', 'uat')
-          .required(),
+        NODE_ENV: Joi.string().valid('dev', 'staging', 'uat').required(),
         PORT: Joi.number(),
 
         MONGODB_ATLAS_URI: Joi.string().required(),
@@ -56,8 +54,7 @@ import yaml from 'js-yaml';
         AZURE_OPENAI_API_INSTANCE_NAME: Joi.string().required(),
         AZURE_OPENAI_API_EMBEDDINGS_DEPLOYMENT_NAME: Joi.string().required(),
         AZURE_OPENAI_API_VERSION: Joi.string().required(),
-        
-        
+
         // =============== yaml config =============== //
         AwsS3: Joi.object({
           buckets: Joi.object({
@@ -68,7 +65,7 @@ import yaml from 'js-yaml';
           Queues: Joi.object({
             FileProcessingQueue: Joi.string().required(),
           }),
-        })
+        }),
       }),
       envFilePath: '.env',
     }),
@@ -76,4 +73,4 @@ import yaml from 'js-yaml';
   providers: [ConfigurationService],
   exports: [ConfigurationService],
 })
-export class ConfigurationModule { }
+export class ConfigurationModule {}

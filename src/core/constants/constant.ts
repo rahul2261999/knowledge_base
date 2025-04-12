@@ -17,6 +17,6 @@ export default Object.freeze({
     TXT: 'text/plain',
   },
   Queues: {
-    CRAWL_CONTENT: 'CRAWL_CONTENT'
-  }
+    CRAWL_CONTENT: 'CRAWL_CONTENT',
+  },
 });

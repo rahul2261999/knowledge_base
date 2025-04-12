@@ -12,6 +12,12 @@ export class Document extends BaseSchema {
     type: String,
     required: true,
   })
+  tenantId: string;
+
+  @Prop({
+    type: String,
+    required: true,
+  })
   knowledgebaseId: string;
 
   @Prop({
@@ -25,7 +31,7 @@ export class Document extends BaseSchema {
     required: true,
     default: 'general',
   })
-  bucketName: string;
+  tag: string;
 
   @Prop({
     type: Number,
@@ -50,7 +56,7 @@ export class Document extends BaseSchema {
     default: Status.ACTIVE,
     required: true,
   })
-  status?: Status
+  status?: Status;
 
   @Prop({
     type: String,

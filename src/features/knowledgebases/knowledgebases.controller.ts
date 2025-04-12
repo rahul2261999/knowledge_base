@@ -15,6 +15,8 @@ import SuccessResponse from 'src/core/response/response.util';
 import { QueryDto } from './dto/query.dto';
 import { QueryResponseDto } from './dto/query-response.dto';
 import BadRequest from 'src/core/error/bad-request';
+import { BaseParamsDto } from './dto/base-params.dto';
+import { FindKnowledgebaseDto } from './dto/find-knowledgebase.dto';
 
 @Controller({
   path: 'knowledgebases',
@@ -24,8 +26,12 @@ export class KnowledgebasesController {
   constructor(private readonly knowledgebasesService: KnowledgebasesService) {}
 
   @Post()
-  async create(@Body() createKnowledgebaseDto: CreateKnowledgebaseDto) {    
+  async create(
+    @Param() parmas: BaseParamsDto,
+    @Body() createKnowledgebaseDto: CreateKnowledgebaseDto,
+  ) {
     const data = await this.knowledgebasesService.create(
+      parmas.tenantId,
       createKnowledgebaseDto,
     );
 
@@ -39,8 +45,10 @@ export class KnowledgebasesController {
   }
 
   @Get()
-  public async findAll() {
-    const data = await this.knowledgebasesService.findAll();
+  public async findAll(@Param() params: BaseParamsDto) {
+    const data = await this.knowledgebasesService.findAll({
+      tenantId: params.tenantId,
+    });
 
     const responseDto = plainToInstance(KnowledgebaseResDto, data, {
       excludeExtraneousValues: true,
@@ -52,9 +60,11 @@ export class KnowledgebasesController {
   }
 
   @Get(':knowledgebaseId')
-  public async findOne(@Param('knowledgebaseId') knowledgebaseId: string) {
-    const data = await this.knowledgebasesService.findOne(knowledgebaseId);
-    
+  public async findOne(@Param() params: FindKnowledgebaseDto) {
+    const data = await this.knowledgebasesService.findOne(
+      params.knowledgebaseId,
+    );
+
     const responseDto = plainToInstance(KnowledgebaseResDto, data, {
       excludeExtraneousValues: true,
     });
@@ -72,8 +82,14 @@ export class KnowledgebasesController {
   }
 
   @Post(':knowledgebaseId/query')
-  public async query(@Param('knowledgebaseId') knowledgebaseId: string, @Body() queryDto: QueryDto) {
-    const data = await this.knowledgebasesService.query(knowledgebaseId, queryDto);
+  public async query(
+    @Param('knowledgebaseId') knowledgebaseId: string,
+    @Body() queryDto: QueryDto,
+  ) {
+    const data = await this.knowledgebasesService.query(
+      knowledgebaseId,
+      queryDto,
+    );
 
     const responseDto = plainToInstance(QueryResponseDto, data, {
       excludeExtraneousValues: true,

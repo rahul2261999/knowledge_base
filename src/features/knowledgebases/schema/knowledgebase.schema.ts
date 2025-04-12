@@ -8,31 +8,36 @@ import { BaseSchema } from 'src/core/schema/base.schema';
   collection: 'knowledgebases',
 })
 export class Knowledgebase extends BaseSchema {
-
   @Prop({
     type: String,
-    required: true
+    required: true,
   })
-  knowledgebaseId: string;
+  tenantId: string;
 
   @Prop({
     type: String,
     required: true,
   })
-  customerId: string;
-
-  @Prop({
-    type: String,
-    required: true,
-  })
-  userId: string;
+  name: string;
 
   @Prop({
     enum: Status,
     default: Status.ACTIVE,
-    required: true
+    required: true,
   })
-  status?: Status;
+  status: Status;
+
+  @Prop({
+    type: String,
+    required: true,
+  })
+  createdBy: string;
+
+  @Prop({
+    type: String,
+    required: true,
+  })
+  updatedBy: string;
 }
 
 export type KnowledgebaseDocument = HydratedDocument<Knowledgebase>;

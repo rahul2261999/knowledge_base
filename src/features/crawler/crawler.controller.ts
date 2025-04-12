@@ -4,12 +4,12 @@ import { CrawlDto } from './dto/crawler.dto';
 
 @Controller('crawler')
 export class CrawlerController {
-  constructor(private readonly crawlerService: CrawlerService) { }
+  constructor(private readonly crawlerService: CrawlerService) {}
 
   @Post('crawl')
   async crawl(@Body() crawlDto: CrawlDto) {
     await this.crawlerService.crawl(crawlDto);
-    
+
     return { message: 'Crawling started successfully' };
   }
 }

@@ -19,11 +19,10 @@ export enum VectorDocumentSource {
   WEBSITE = 'WEBSITE',
 }
 
-
 export enum Status {
   ACTIVE = 'ACTIVE',
   DISABLE = 'DISABLE',
-  DELETED = 'DELETED'
+  DELETED = 'DELETED',
 }
 
 export enum CrawlingSessionStatus {

@@ -1,34 +1,42 @@
 import { Expose, Transform } from 'class-transformer';
-import { IsDate, IsEnum, IsString } from 'class-validator';
-import { Status } from 'src/core/constants/global.enum';
+import { IsString } from 'class-validator';
 
-export class KnowledgebaseResDto {
+export class CreateWebsiteResDto {
   @Expose({ name: '_id' })
   @Transform(({ obj }) => obj._id.toString())
-  id: number;
+  id: string;
 
   @Expose()
   tenantId: string;
 
   @Expose()
-  @IsString()
-  name: string;
+  knowledgebaseId: string;
 
   @Expose()
-  @IsEnum(Status)
-  status: Status;
+  url: string;
 
   @Expose()
-  createdBy: string;
+  depth: number;
 
   @Expose()
-  updatedBy: string;
+  processingStatus: string;
+
+  @Expose()
+  status: string;
+
+  @Expose()
+  createdBy: string | null;
+
+  @Expose()
+  updatedBy: string | null;
 
   @Expose()
   @Transform(({ value }) => value.toISOString())
+  @IsString()
   createdAt: string;
 
   @Expose()
   @Transform(({ value }) => value.toISOString())
+  @IsString()
   updatedAt: string;
 }

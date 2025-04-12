@@ -1,13 +1,19 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import mongoose, { HydratedDocument } from "mongoose";
-import { ProcessingStatus, Status } from "src/core/constants/global.enum";
-import { BaseSchema } from "src/core/schema/base.schema";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
+import { ProcessingStatus, Status } from 'src/core/constants/global.enum';
+import { BaseSchema } from 'src/core/schema/base.schema';
 
 @Schema({
   timestamps: true,
-  collection: "websites",
+  collection: 'websites',
 })
 export class Website extends BaseSchema {
+  @Prop({
+    type: String,
+    required: true,
+  })
+  tenantId: string;
+
   @Prop({
     type: String,
     required: true,
@@ -36,7 +42,7 @@ export class Website extends BaseSchema {
   @Prop({
     enum: Status,
     required: true,
-    default: Status.ACTIVE
+    default: Status.ACTIVE,
   })
   status: Status;
 

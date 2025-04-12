@@ -5,6 +5,5 @@ export class CreateDocumentDto {
   @IsOptional()
   @IsString({})
   @Transform(({ value }) => value ?? 'general')
-  
-  bucketName: string;
+  tag: string;
 }

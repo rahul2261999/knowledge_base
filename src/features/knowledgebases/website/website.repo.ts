@@ -1,10 +1,15 @@
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { LoggingService } from "src/lib/logger/logger.service";
-import { Website, WebsiteDocument } from "./schema/website.schema";
-import { DeleteResult, Model, RootFilterQuery, UpdateWriteOpResult } from "mongoose";
-import { ILoggerData } from "src/lib/logger/logger.type";
-import InternalServer from "src/core/error/internal-server.error";
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { LoggingService } from 'src/lib/logger/logger.service';
+import { Website, WebsiteDocument } from './schema/website.schema';
+import {
+  DeleteResult,
+  Model,
+  RootFilterQuery,
+  UpdateWriteOpResult,
+} from 'mongoose';
+import { ILoggerData } from 'src/lib/logger/logger.type';
+import InternalServer from 'src/core/error/internal-server.error';
 
 @Injectable()
 export class WebsiteRepo {
@@ -25,7 +30,10 @@ export class WebsiteRepo {
 
       const data = await this.websiteModel.create(website);
 
-      this.loggerService.info({ ...logData, message: 'website document created' });
+      this.loggerService.info({
+        ...logData,
+        message: 'website document created',
+      });
 
       return data;
     } catch (error) {
@@ -40,7 +48,7 @@ export class WebsiteRepo {
 
   public async update(
     findOptions: RootFilterQuery<Website>,
-    website: Partial<Website>
+    website: Partial<Website>,
   ): Promise<UpdateWriteOpResult> {
     const logData: ILoggerData = {
       serviceName: 'WebsiteRepo',
@@ -53,7 +61,10 @@ export class WebsiteRepo {
 
       const data = await this.websiteModel.updateOne(findOptions, website);
 
-      this.loggerService.info({ ...logData, message: 'website document updated' });
+      this.loggerService.info({
+        ...logData,
+        message: 'website document updated',
+      });
 
       return data;
     } catch (error) {
@@ -67,7 +78,7 @@ export class WebsiteRepo {
   }
 
   public async findOne(
-    findOptions: RootFilterQuery<Website>
+    findOptions: RootFilterQuery<Website>,
   ): Promise<WebsiteDocument | null> {
     const logData: ILoggerData = {
       serviceName: 'WebsiteRepo',
@@ -80,7 +91,10 @@ export class WebsiteRepo {
 
       const data = await this.websiteModel.findOne(findOptions);
 
-      this.loggerService.info({ ...logData, message: 'website document found' });
+      this.loggerService.info({
+        ...logData,
+        message: 'website document found',
+      });
 
       return data;
     } catch (error) {
@@ -107,7 +121,10 @@ export class WebsiteRepo {
 
       const data = await this.websiteModel.find(findOptions);
 
-      this.loggerService.info({ ...logData, message: 'website documents found' });
+      this.loggerService.info({
+        ...logData,
+        message: 'website documents found',
+      });
 
       return data;
     } catch (error) {
@@ -134,7 +151,10 @@ export class WebsiteRepo {
 
       const data = await this.websiteModel.deleteOne(findOptions);
 
-      this.loggerService.info({ ...logData, message: 'document website deleted' });
+      this.loggerService.info({
+        ...logData,
+        message: 'document website deleted',
+      });
 
       return data;
     } catch (error) {

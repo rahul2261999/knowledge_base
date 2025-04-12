@@ -69,7 +69,8 @@ export class FileProcessorEvents {
               { processingStatus: ProcessingStatus.PROCESSING },
             );
 
-            const bucketName = this.configurationService.getS3Buckets().knowledgebase;
+            const bucketName =
+              this.configurationService.getS3Buckets().knowledgebase;
 
             const fileExist = await this.awsS3Service.download.checkFileExists(
               bucketName,
@@ -91,10 +92,11 @@ export class FileProcessorEvents {
 
             const fileExtension = path.extname(document.name);
 
-            const s3Document = await this.awsS3Service.download.downloadSmallFile(
-              this.configurationService.getS3Buckets().knowledgebase,
-              document.url,
-            );
+            const s3Document =
+              await this.awsS3Service.download.downloadSmallFile(
+                this.configurationService.getS3Buckets().knowledgebase,
+                document.url,
+              );
 
             const mimetype = mimetypes.lookup(fileExtension);
 
@@ -294,11 +296,10 @@ export class FileProcessorEvents {
           message: 'init pdf builder',
         });
 
-        const fileProcessorBuilder =
-          FileProcessorBuilderFactory.getFileBuilder(
-            FileExtensions.pdf,
-            this.loggerService,
-          );
+        const fileProcessorBuilder = FileProcessorBuilderFactory.getFileBuilder(
+          FileExtensions.pdf,
+          this.loggerService,
+        );
 
         fileProcessor = fileProcessorBuilder
           .setFilepathOrBlob(filePathOrBlob)
@@ -312,11 +313,10 @@ export class FileProcessorEvents {
           message: 'init document builder',
         });
 
-        const fileProcessorBuilder =
-          FileProcessorBuilderFactory.getFileBuilder(
-            fileExtension,
-            this.loggerService,
-          );
+        const fileProcessorBuilder = FileProcessorBuilderFactory.getFileBuilder(
+          fileExtension,
+          this.loggerService,
+        );
 
         fileProcessor = fileProcessorBuilder
           .setFilepathOrBlob(filePathOrBlob)
@@ -372,10 +372,7 @@ export class FileProcessorEvents {
         message: 'execution completed',
       });
     } catch (error: any) {
-      this.loggerService.error(
-        { ...loggerData, message: 'failed' },
-        { error },
-      );
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
       if (document) {
         await this.documentService

@@ -20,22 +20,25 @@ export class QueueReceiverService implements OnApplicationBootstrap {
     private readonly alsService: AlsService,
     private readonly fileProcessorEvents: FileProcessorEvents,
   ) {}
-  
+
   // This method will be called once the application is ready
   async onApplicationBootstrap() {
     this.loggerService.info({
       serviceName: 'QueueReceiverService',
       function: 'onApplicationBootstrap',
-      message: 'Starting queue receiver service'
+      message: 'Starting queue receiver service',
     });
 
     // Start the queue processing in the background
-    this.startQueueProcessing().catch(error => {
-      this.loggerService.error({
-        serviceName: 'QueueReceiverService',
-        function: 'onApplicationBootstrap',
-        message: 'Failed to start queue processing'
-      }, { error });
+    this.startQueueProcessing().catch((error) => {
+      this.loggerService.error(
+        {
+          serviceName: 'QueueReceiverService',
+          function: 'onApplicationBootstrap',
+          message: 'Failed to start queue processing',
+        },
+        { error },
+      );
     });
   }
 
@@ -44,14 +47,17 @@ export class QueueReceiverService implements OnApplicationBootstrap {
       try {
         await this.fileProcessingQueue();
       } catch (error) {
-        this.loggerService.error({
-          serviceName: 'QueueReceiverService',
-          function: 'startQueueProcessing',
-          message: 'Queue processing failed, restarting...'
-        }, { error });
+        this.loggerService.error(
+          {
+            serviceName: 'QueueReceiverService',
+            function: 'startQueueProcessing',
+            message: 'Queue processing failed, restarting...',
+          },
+          { error },
+        );
 
         // Wait before restarting to prevent rapid restart loops
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
       }
     }
   }

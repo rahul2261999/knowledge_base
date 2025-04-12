@@ -1,4 +1,13 @@
-import { ChangeMessageVisibilityCommand, DeleteMessageCommand, GetQueueUrlCommand, MessageAttributeValue, MessageSystemAttributeValue, ReceiveMessageCommand, SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
+import {
+  ChangeMessageVisibilityCommand,
+  DeleteMessageCommand,
+  GetQueueUrlCommand,
+  MessageAttributeValue,
+  MessageSystemAttributeValue,
+  ReceiveMessageCommand,
+  SendMessageCommand,
+  SQSClient,
+} from '@aws-sdk/client-sqs';
 import { Injectable } from '@nestjs/common';
 import { ConfigurationService } from 'src/core/configuration/configuration.service';
 import InternalServer from 'src/core/error/internal-server.error';
@@ -11,27 +20,25 @@ export class AwsSqsService {
 
   constructor(
     private readonly loggerService: LoggingService,
-    private readonly configurationService: ConfigurationService
+    private readonly configurationService: ConfigurationService,
   ) {
-
-    const creds = this.configurationService.getS3Creds()
+    const creds = this.configurationService.getS3Creds();
 
     this.sqsClient = new SQSClient({
       credentials: {
         accessKeyId: creds.accessKey,
-        secretAccessKey: creds.secretAccessKey
+        secretAccessKey: creds.secretAccessKey,
       },
-      region: 'us-east-1'
-    })
+      region: 'us-east-1',
+    });
   }
-
 
   public async getQueue(queueName: string) {
     const loggerData: ILoggerData = {
       serviceName: 'AwsSqsService',
       function: 'getQueue',
-      message: 'executing'
-    }
+      message: 'executing',
+    };
 
     try {
       this.loggerService.info(loggerData);
@@ -39,18 +46,24 @@ export class AwsSqsService {
       const command = new GetQueueUrlCommand({ QueueName: queueName });
       const response = await this.sqsClient.send(command);
 
-      this.loggerService.debug({ ...loggerData, message: `Queue exists: ${response.QueueUrl}` });
-      this.loggerService.info({ ...loggerData, message: 'executed' })
+      this.loggerService.debug({
+        ...loggerData,
+        message: `Queue exists: ${response.QueueUrl}`,
+      });
+      this.loggerService.info({ ...loggerData, message: 'executed' });
 
       return response.QueueUrl;
     } catch (error) {
-      if (error.name === "QueueDoesNotExist") {
-        this.loggerService.debug({ ...loggerData, message: 'Queue does not exist.' });
+      if (error.name === 'QueueDoesNotExist') {
+        this.loggerService.debug({
+          ...loggerData,
+          message: 'Queue does not exist.',
+        });
 
         return undefined;
       }
 
-      this.loggerService.error({ ...loggerData, message: "failed" }, { error })
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
       return undefined;
     }
@@ -59,13 +72,13 @@ export class AwsSqsService {
   public async changeMessageVisibility(
     queueUrl: string,
     receiptHandle: string,
-    visibilityTimeout: number
+    visibilityTimeout: number,
   ) {
     const loggerData: ILoggerData = {
       serviceName: 'AwsSqsService',
       function: 'changeMessageVisibility',
-      message: 'executing'
-    }
+      message: 'executing',
+    };
 
     try {
       this.loggerService.info(loggerData);
@@ -73,25 +86,33 @@ export class AwsSqsService {
       const command = new ChangeMessageVisibilityCommand({
         QueueUrl: queueUrl,
         ReceiptHandle: receiptHandle,
-        VisibilityTimeout: visibilityTimeout
+        VisibilityTimeout: visibilityTimeout,
       });
 
       await this.sqsClient.send(command);
 
       this.loggerService.info({ ...loggerData, message: 'executed' });
     } catch (error) {
-      this.loggerService.error({ ...loggerData, message: "failed" }, { error });
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
-      throw new InternalServer('Something went wrong while changing message visibility');
+      throw new InternalServer(
+        'Something went wrong while changing message visibility',
+      );
     }
   }
 
-  public async sendMessage(queueUrl: string, message: { attributes?: Record<string, MessageAttributeValue>, body?: Record<string, any> | undefined }) {
+  public async sendMessage(
+    queueUrl: string,
+    message: {
+      attributes?: Record<string, MessageAttributeValue>;
+      body?: Record<string, any> | undefined;
+    },
+  ) {
     const loggerData: ILoggerData = {
       serviceName: 'AwsSqsService',
       function: 'sendMessage',
-      message: 'executing'
-    }
+      message: 'executing',
+    };
 
     try {
       this.loggerService.info(loggerData);
@@ -105,13 +126,15 @@ export class AwsSqsService {
 
       const response = await this.sqsClient.send(command);
 
-      this.loggerService.debug({ ...loggerData, message: `message sent to queue, messageId: ${response.MessageId}` });
-      this.loggerService.info({ ...loggerData, message: 'executed' })
+      this.loggerService.debug({
+        ...loggerData,
+        message: `message sent to queue, messageId: ${response.MessageId}`,
+      });
+      this.loggerService.info({ ...loggerData, message: 'executed' });
 
       return { sent: true, data: response };
     } catch (error) {
-
-      this.loggerService.error({ ...loggerData, message: "failed" }, { error })
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
       return new InternalServer('Something went wrong while sending message');
     }
@@ -119,34 +142,42 @@ export class AwsSqsService {
 
   public async receiveMessage(
     queueUrl: string,
-    options?: { attributes?: string[] }
+    options?: { attributes?: string[] },
   ) {
     const loggerData: ILoggerData = {
       serviceName: 'AwsSqsService',
       function: 'receiveMessage',
-      message: 'executing'
-    }
+      message: 'executing',
+    };
 
     try {
       this.loggerService.info(loggerData);
 
       const command = new ReceiveMessageCommand({
         QueueUrl: queueUrl,
-        MessageAttributeNames: options && options.attributes ? Object.keys(options.attributes) : undefined,
-        MessageSystemAttributeNames: ['ApproximateReceiveCount', 'AWSTraceHeader', 'SequenceNumber'],
-        WaitTimeSeconds: 20
+        MessageAttributeNames:
+          options && options.attributes
+            ? Object.keys(options.attributes)
+            : undefined,
+        MessageSystemAttributeNames: [
+          'ApproximateReceiveCount',
+          'AWSTraceHeader',
+          'SequenceNumber',
+        ],
+        WaitTimeSeconds: 20,
       });
 
       const response = await this.sqsClient.send(command);
 
-      this.loggerService.info({ ...loggerData, message: 'executed' })
+      this.loggerService.info({ ...loggerData, message: 'executed' });
 
       return response;
     } catch (error) {
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
-      this.loggerService.error({ ...loggerData, message: "failed" }, { error })
-
-      throw new InternalServer('Something went wrong while receving message from queue');
+      throw new InternalServer(
+        'Something went wrong while receving message from queue',
+      );
     }
   }
 
@@ -154,23 +185,25 @@ export class AwsSqsService {
     const loggerData: ILoggerData = {
       serviceName: 'AwsSqsService',
       function: 'deleteMessage',
-      message: 'executing'
-    }
+      message: 'executing',
+    };
 
     try {
       this.loggerService.info(loggerData);
 
       const command = new DeleteMessageCommand({
         QueueUrl: queueUrl,
-        ReceiptHandle: receiptHandle
+        ReceiptHandle: receiptHandle,
       });
 
       await this.sqsClient.send(command);
 
       this.loggerService.info({ ...loggerData, message: 'executed' });
     } catch (error) {
-      this.loggerService.error({ ...loggerData, message: "failed" }, { error });
-      throw new InternalServer('Something went wrong while deleting message from queue');
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
+      throw new InternalServer(
+        'Something went wrong while deleting message from queue',
+      );
     }
   }
 }

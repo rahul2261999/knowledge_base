@@ -37,13 +37,17 @@ import { Website, WebsiteSchema } from './website/schema/website.schema';
     MongooseModule.forFeature([
       { name: Knowledgebase.name, schema: KnowledgebaseSchema },
       { name: Document.name, schema: DocumentSchema },
-      { name: Website.name, schema: WebsiteSchema }
+      { name: Website.name, schema: WebsiteSchema },
     ]),
     AwsS3Module,
     TriggerModule,
     PineconeVectorStoreModule,
   ],
-  controllers: [KnowledgebasesController, DocumentController, WebsiteController],
+  controllers: [
+    KnowledgebasesController,
+    DocumentController,
+    WebsiteController,
+  ],
   providers: [
     KnowledgebaseRepo,
     KnowledgebasesService,

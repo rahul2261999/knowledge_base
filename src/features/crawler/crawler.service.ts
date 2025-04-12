@@ -4,7 +4,11 @@ import {
   Logger,
 } from '@nestjs/common';
 import { CrawlDto } from './dto/crawler.dto';
-import { CrawlContentQueuePayload, Crawling, ExtractedUrl } from './crawler.interface';
+import {
+  CrawlContentQueuePayload,
+  Crawling,
+  ExtractedUrl,
+} from './crawler.interface';
 import { Cheerio } from './handlers/cheerio';
 import { Sitemap } from 'src/lib/sitemap/sitemap.util';
 import mongoose from 'mongoose';
@@ -12,29 +16,31 @@ import { CrawlingSessionRepo } from './repo/crawling-session.repo';
 import { CrawledUrl } from './schemas/crawled-url.model';
 import { CrawledUrlRepo } from './repo/crawled-url.repo';
 import { CrawlingSessionDocument } from './schemas/crawling-session.model';
-import { CrawledUrlStatus, CrawlingSessionStatus } from 'src/core/constants/global.enum';
+import {
+  CrawledUrlStatus,
+  CrawlingSessionStatus,
+} from 'src/core/constants/global.enum';
 
 @Injectable()
 export class CrawlerService {
-
   constructor(
     private crawlingSessionRepo: CrawlingSessionRepo,
     private crawledUrlRepo: CrawledUrlRepo,
-  ) { }
+  ) {}
 
   async crawl(params: CrawlDto): Promise<CrawlingSessionDocument> {
     try {
-      Logger.log("executing: CrawlerService -> crawl");
+      Logger.log('executing: CrawlerService -> crawl');
 
       await this.crawlingSessionRepo.updateOne(
         {
           websiteId: new mongoose.Types.ObjectId(params.websiteId),
-          active: true
+          active: true,
         },
         {
-          active: false
-        }
-      )
+          active: false,
+        },
+      );
 
       const createCrawlingSession = await this.crawlingSessionRepo.create({
         websiteId: params.websiteId,
@@ -45,18 +51,17 @@ export class CrawlerService {
         status: CrawlingSessionStatus.IN_PROGRESS,
       });
 
-
       this.determineCrawlingStrategy({
         crawlingSessionId: createCrawlingSession._id.toString(),
         url: new URL(params.url),
         depth: params.depth,
-      })
+      });
 
-      Logger.log("executed: CrawlerService -> crawl")
+      Logger.log('executed: CrawlerService -> crawl');
 
       return createCrawlingSession;
     } catch (error) {
-      Logger.error("error: CrawlerService -> crawl")
+      Logger.error('error: CrawlerService -> crawl');
       Logger.error(error.message, error);
 
       throw new InternalServerErrorException(error.message, {
@@ -76,24 +81,28 @@ export class CrawlerService {
       let data: { totalUrls: number };
 
       if (sitemap.checkSiteMaps()) {
-        const extractedUrls: ExtractedUrl[] = sitemap.getSiteMaps()!.urlset.url.map(it => {
-          return {
-            url: it.loc,
-            lastModified: it.lastmod,
-            changeFrequency: it.changefreq ? parseFloat(it.changefreq) : undefined,
-            priority: it.priority,
-          }
-        })
+        const extractedUrls: ExtractedUrl[] = sitemap
+          .getSiteMaps()!
+          .urlset.url.map((it) => {
+            return {
+              url: it.loc,
+              lastModified: it.lastmod,
+              changeFrequency: it.changefreq
+                ? parseFloat(it.changefreq)
+                : undefined,
+              priority: it.priority,
+            };
+          });
 
-        data = await this.processExtractedUrl(extractedUrls, params)
+        data = await this.processExtractedUrl(extractedUrls, params);
       } else {
-        data = await this.crawlWebsite(params)
+        data = await this.crawlWebsite(params);
       }
 
       await this.crawlingSessionRepo.updateOne(
         { _id: new mongoose.Types.ObjectId(params.crawlingSessionId) },
-        { totalUrls: data.totalUrls }
-      )
+        { totalUrls: data.totalUrls },
+      );
 
       Logger.log('executing CrawlerService -> determineCrawlingStrategy');
     } catch (error) {
@@ -115,19 +124,19 @@ export class CrawlerService {
 
       const processedUrls = cheerioClient.getProcessedUrls();
 
-      const extractedUrls: ExtractedUrl[] = processedUrls.map(it => {
+      const extractedUrls: ExtractedUrl[] = processedUrls.map((it) => {
         return {
           url: it,
-        }
-      })
+        };
+      });
 
-      await this.processExtractedUrl(extractedUrls, params)
+      await this.processExtractedUrl(extractedUrls, params);
 
       Logger.log('executed CrawlerService -> crawlWebsite');
 
       return {
         totalUrls: processedUrls.length,
-      }
+      };
     } catch (error) {
       Logger.error('Error in CrawlerService -> crawlWebsite', error);
 
@@ -138,21 +147,30 @@ export class CrawlerService {
     }
   }
 
-  private async processExtractedUrl(extractedUrls: ExtractedUrl[], params: Crawling) {
+  private async processExtractedUrl(
+    extractedUrls: ExtractedUrl[],
+    params: Crawling,
+  ) {
     try {
       Logger.log('executing: CrawlerService -> processExtractedUrl');
 
-      const bulkCreateCrawleddUrl: CrawledUrl[] = extractedUrls.map(extractedUrl => {
-        const data: CrawledUrl = {
-          url: extractedUrl.url,
-          crawlingSessionId: new mongoose.Types.ObjectId(params.crawlingSessionId),
-          status: CrawledUrlStatus.PENDING,
-        }
+      const bulkCreateCrawleddUrl: CrawledUrl[] = extractedUrls.map(
+        (extractedUrl) => {
+          const data: CrawledUrl = {
+            url: extractedUrl.url,
+            crawlingSessionId: new mongoose.Types.ObjectId(
+              params.crawlingSessionId,
+            ),
+            status: CrawledUrlStatus.PENDING,
+          };
 
-        return data;
-      });
+          return data;
+        },
+      );
 
-      const bulkCreatedCrawleddUrl = await this.crawledUrlRepo.bulkCreate(bulkCreateCrawleddUrl);
+      const bulkCreatedCrawleddUrl = await this.crawledUrlRepo.bulkCreate(
+        bulkCreateCrawleddUrl,
+      );
 
       // let iteration = 0;
       // let batchSize = Math.min(bulkCreatedCrawleddUrl.length, 200);
@@ -221,7 +239,6 @@ export class CrawlerService {
   //       await Promise.all(batchPromise);
   //     }
 
-
   //     Logger.log('executed: CrawlerService -> getSitemapIndexURLs');
 
   //     return { totalUrls };
@@ -234,5 +251,4 @@ export class CrawlerService {
   //     });
   //   }
   // }
-
 }

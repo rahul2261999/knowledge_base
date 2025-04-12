@@ -8,6 +8,9 @@ export class CreateDocumentResDto {
   id: string;
 
   @Expose()
+  tenantId: string;
+
+  @Expose()
   knowledgebaseId: string;
 
   @Expose()
@@ -28,7 +31,7 @@ export class CreateDocumentResDto {
 
   @Expose()
   @IsEnum(Status)
-  status: Status
+  status: Status;
 
   @Expose()
   @Transform(({ value }) => value.toISOString())
