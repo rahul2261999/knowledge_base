@@ -1,0 +1,6 @@
+AwsS3:
+  buckets:
+    knowledgebase: "rag-knowledgebase-staging"
+AwsSqs:
+  Queues:
+    FileProcessingQueue: "File-Processing-Queue-Staging"

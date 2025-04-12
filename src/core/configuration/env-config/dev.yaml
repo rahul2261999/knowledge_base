@@ -1,0 +1,6 @@
+AwsS3:
+  buckets:
+    knowledgebase: "rag-knowledgebase-dev"
+AwsSqs:
+  Queues:
+    FileProcessingQueue: "File-Processing-Queue-Dev"

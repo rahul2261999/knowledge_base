@@ -1,0 +1,8 @@
+dist
+logs
+node_modules
+tmp
+.env
+package-lock.json
+fargate.yaml
+fargate-deploy.sh
