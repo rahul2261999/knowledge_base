@@ -1,17 +1,22 @@
 {
   "compilerOptions": {
-    "incremental": true, /* Save .tsbuildinfo files to allow for incremental compilation of projects. */
-    "target": "es2016", /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
-    "module": "commonjs", /* Specify what module code is generated. */
-    "sourceMap": true, /* Create source map files for emitted JavaScript files. */
-    "outDir": "build", /* Specify an output folder for all emitted files. */
-    "removeComments": true, /* Disable emitting comments. */
-    "newLine": "lf", /* Set the newline character for emitting files. */
-    "forceConsistentCasingInFileNames": true, /* Ensure that casing is correct in imports. */
-    "strict": true, /* Enable all strict type-checking options. */
-    "noImplicitAny": true, /* Enable error reporting for expressions and declarations with an implied 'any' type. */
-    "strictNullChecks": true, /* When type checking, take into account 'null' and 'undefined'. */
-    "strictFunctionTypes": true, /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
-    "skipLibCheck": true /* Skip type checking all .d.ts files. */
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false,
+    "esModuleInterop": true
   }
 }

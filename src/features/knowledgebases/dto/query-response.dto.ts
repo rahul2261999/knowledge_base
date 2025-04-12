@@ -1,0 +1,24 @@
+import { Expose, Transform } from 'class-transformer';
+import { IsEnum } from 'class-validator';
+import { VectorDocumentSource } from 'src/core/constants/global.enum';
+
+export class QueryResponseDto {
+  // @Expose()
+  id: string;
+
+  @Expose()
+  @Transform(({ obj }) => obj.metadata.text)
+  text: string;
+
+  @Expose()
+  @Transform(({ obj }) => obj.metadata.bucketName)
+  bucketName: string;
+
+  @Expose()
+  @Transform(({ obj }) => obj.metadata.source)
+  @IsEnum(VectorDocumentSource)
+  source: string;
+
+  @Expose({ name: 'score' })
+  relevanceScore: number;
+}
