@@ -3,42 +3,56 @@ import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
 import constant from "../../constants/constant";
 import mistralEmbeddings from "../../embeddings/mistral_embeddings";
 import { BaseVectorStore, BaseGetRetriver } from "../base.interface";
-import mongo_db_client from "../../dbs/mongodb_client";
+import { ILoggerData } from "../../utils/logger/logger.type";
+import loggerService from "../../utils/logger/logger.service";
+import mongodbClient from "../../dbs/mongodb/mongodb-client";
 
 class MongoVectorStore implements BaseVectorStore {
 
   public static instance: MongoVectorStore;
 
-  private vectorStore: MongoDBAtlasVectorSearch;
+  private vectorStore!: MongoDBAtlasVectorSearch;
 
-  private constructor() {
+  private constructor() {}
+
+  private async init () {
+    const mongoClient = await mongodbClient.getInstance();
+    const collection = mongoClient.getCollection(constant.mongo.collection)
+
     this.vectorStore = new MongoDBAtlasVectorSearch(
       mistralEmbeddings,
       {
-        collection: mongo_db_client.getCollection(constant.mongo.collection),
-        indexName: 'mistral_embeddings',
-        embeddingKey: 'mistral_embeddings',
+        collection,
+        indexName: 'mistral',
+        embeddingKey: 'embedding',
         textKey: 'text'
       }
     );
   }
    
-  public static getInstance(): MongoVectorStore {
+  public static async getInstance(): Promise<MongoVectorStore> {
     if (!MongoVectorStore.instance) {
       MongoVectorStore.instance = new MongoVectorStore();
+      await MongoVectorStore.instance.init()
     }
     return MongoVectorStore.instance;
   }
 
   public async addDocuments(params: Document[], docIds?: string[]) {
+    const loggerData: ILoggerData = {
+      serviceName: 'MongoVectorStore',
+      function: 'addDocuments',
+      message: 'executing'
+    }
     try {
-      console.info("executing -> addDocuments");
+     loggerService.info(loggerData);
 
       await this.vectorStore.addDocuments(params, { ids: docIds });
 
-      console.info("exection complete -> addDocuments")
+      loggerData.message = 'execution complete'
+      loggerService.info(loggerData);
     } catch (error) {
-      console.error(error);
+      loggerService.error(loggerData, { error: error as Error });
 
       throw new Error("Something went wrong when adding documents");
     }
@@ -49,6 +63,10 @@ class MongoVectorStore implements BaseVectorStore {
     
     return this.vectorStore.asRetriever(kfileds, filter)
   }
+
+  public getStore() {
+    return this.vectorStore;
+  }
 }
 
-export default MongoVectorStore.getInstance();
+export default MongoVectorStore;
