@@ -5,7 +5,6 @@ import InternalServer from 'src/core/error/internal-server.error';
 import { AwsSqsService } from 'src/lib/aws_sqs/aws-sqs.service';
 import { LoggingService } from 'src/lib/logger/logger.service';
 import { ILoggerData } from 'src/lib/logger/logger.type';
-import { FileProcessorEvents } from '../events/ingestion/file-processor.event';
 import { IProcessIncomingFileAttrs } from 'src/lib/file_processors/index.type';
 
 @Injectable()

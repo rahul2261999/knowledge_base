@@ -30,14 +30,14 @@ export class PineconeNsService {
         message: 'adding documents to pinecone',
       });
 
-      const batch = documents.map(async (doc) => {
-        const embedding = await this.embeddingService.generateEmbeddings(
-          doc.text,
-        );
+      const texts: string[] = documents.map((doc) => doc.text);
+      const generatedEmbeddingBatch =
+        await this.embeddingService.generateEmbeddingsBatch(texts);
 
+      const batch = documents.map((doc, index) => {
         const data: PineconeRecord = {
           id: doc.id,
-          values: embedding,
+          values: generatedEmbeddingBatch[index],
           metadata: {
             text: doc.text,
             ...doc.metadata,
@@ -47,9 +47,7 @@ export class PineconeNsService {
         return data;
       });
 
-      const resolvedBatch = await Promise.all(batch);
-
-      await this.namespace.upsert(resolvedBatch);
+      await this.namespace.upsert(batch);
 
       this.loggerService.info({
         ...loggerData,

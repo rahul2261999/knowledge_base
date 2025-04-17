@@ -17,7 +17,7 @@ export class AlsService<T extends BaseTraceContext = BaseTraceContext> {
 
   public runContext(
     data: Map<keyof T, T[keyof T]>,
-    cb: () => Promise<void> | void,
+    cb: () => Promise<void> | void | Record<string, unknown>,
   ): void {
     void this.als.run(data, cb);
   }
