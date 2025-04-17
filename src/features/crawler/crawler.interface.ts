@@ -1,7 +1,7 @@
-export interface Crawling {
+import { CrawlDto } from './dto/crawler.dto';
+
+export interface Crawling extends CrawlDto {
   crawlingSessionId: string;
-  url: URL;
-  depth: number;
 }
 
 export interface ExtractedUrl {
@@ -9,10 +9,4 @@ export interface ExtractedUrl {
   lastModified?: string;
   changeFrequency?: number;
   priority?: string;
-}
-
-export interface CrawlContentQueuePayload {
-  url: string;
-  crawlingSessionId: string;
-  crawlingUrlId: string;
 }

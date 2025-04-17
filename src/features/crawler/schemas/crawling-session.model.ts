@@ -11,7 +11,7 @@ export class CrawlingSession {
     type: String,
     required: true,
   })
-  websiteId: string;
+  websiteId: String;
 
   @Prop({
     type: Number,
@@ -23,8 +23,9 @@ export class CrawlingSession {
   @Prop({
     type: Number,
     required: true,
+    default: 0,
   })
-  urlsCrawled: number | null;
+  urlsCrawled: number;
 
   @Prop({
     enum: CrawlingSessionStatus,

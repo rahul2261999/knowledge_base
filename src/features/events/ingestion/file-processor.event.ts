@@ -7,13 +7,8 @@ import {
   VectorDocumentSource,
 } from 'src/core/constants/global.enum';
 import FileProcessorBuilderFactory from 'src/lib/file_processors/file-processor-builder.factory';
-import {
-  EFileProcessorEvents,
-  IProcessIncomingFileAttrs,
-  BaseFileProcessor,
-} from 'src/lib/file_processors/index.type';
 import { ILoggerData } from 'src/lib/logger/logger.type';
-import { flatten, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PineconeVectorStoreService } from 'src/lib/vector_store/pinecone/pinecone-vector-store.service';
 import { DocumentService } from 'src/features/knowledgebases/document/document.service';
 import { AwsS3Service } from 'src/lib/aws_s3/aws-s3.service';
@@ -25,6 +20,10 @@ import { Document as DocumentRecord } from 'src/features/knowledgebases/document
 import { AlsService } from 'src/core/common/als/als.service';
 import { VectorDocument } from 'src/lib/vector_store/pinecone/types/pinecone.type';
 import { flattenObject } from 'src/utils/helper';
+import { IProcessIncomingFileAttrs, ProcessWebpage } from '../events.type';
+import { EFileProcessorEvents } from '../events.enum';
+import { BaseFileProcessor } from 'src/lib/file_processors/index.type';
+import { WebsiteService } from 'src/features/knowledgebases/website/website.service';
 
 @Injectable()
 export class FileProcessorEvents {
@@ -37,6 +36,7 @@ export class FileProcessorEvents {
     private configurationService: ConfigurationService,
     private pineconVectorStoreService: PineconeVectorStoreService,
     private alsService: AlsService,
+    private readonly websiteService: WebsiteService,
   ) {
     this.intilizeEventListeners();
   }
@@ -165,7 +165,7 @@ export class FileProcessorEvents {
                     documentId: params.documentId,
                     source: VectorDocumentSource.DOCUMENT,
                     filename: document!.name,
-                    bucketName: document!.bucketName.toLowerCase(),
+                    bucketName: document!.tag.toLowerCase(),
                     ...lines,
                   },
                 };
@@ -222,180 +222,43 @@ export class FileProcessorEvents {
         });
       },
     );
-  }
 
-  public emitEvent(
-    eventName: EFileProcessorEvents,
-    params: IProcessIncomingFileAttrs,
-  ) {
-    this.eventEmitter.emit(eventName, params);
-  }
+    this.eventEmitter.on(
+      EFileProcessorEvents.PROCESS_INCOMING_WEBPAGE,
+      (params: ProcessWebpage) => {
+        this.alsService.runContext(new Map(), async () => {
+          this.alsService.setTraceId(params.tracingId);
 
-  // temp function sqs queue testing
-  public async processFile(params: IProcessIncomingFileAttrs) {
-    const loggerData: ILoggerData = {
-      serviceName: 'FileProcessorEvents',
-      function: 'Event: PROCESS_INCOMING_FILE',
-    };
-
-    let s3TempDownloadPath: string | undefined;
-
-    let document:
-      | (DocumentRecord & { _id: mongoose.Types.ObjectId })
-      | undefined;
-
-    try {
-      this.loggerService.info(loggerData);
-
-      document = await this.documentService.findOne(params.documentId);
-
-      await this.documentService.internalUpdate(
-        { _id: document._id },
-        { processingStatus: ProcessingStatus.PROCESSING },
-      );
-
-      const bucketName = this.configurationService.getS3Buckets().knowledgebase;
-
-      const fileExist = await this.awsS3Service.download.checkFileExists(
-        bucketName,
-        document.url,
-      );
-
-      if (!fileExist) {
-        this.loggerService.error({
-          ...loggerData,
-          message: 'File does not exist',
-          additionalArgs: {
-            documentId: params.documentId,
-            url: document.url,
-          },
-        });
-
-        return;
-      }
-
-      const fileExtension = path.extname(document.name);
-
-      const s3Document = await this.awsS3Service.download.downloadSmallFile(
-        this.configurationService.getS3Buckets().knowledgebase,
-        document.url,
-      );
-
-      const mimetype = mimetypes.lookup(fileExtension);
-
-      const filePathOrBlob: string | Blob = new Blob(
-        [s3Document.buffer.buffer],
-        { type: mimetype || 'text/plain' },
-      );
-
-      let fileProcessor: BaseFileProcessor;
-
-      if (fileExtension === FileExtensions.pdf) {
-        this.loggerService.debug({
-          ...loggerData,
-          message: 'init pdf builder',
-        });
-
-        const fileProcessorBuilder = FileProcessorBuilderFactory.getFileBuilder(
-          FileExtensions.pdf,
-          this.loggerService,
-        );
-
-        fileProcessor = fileProcessorBuilder
-          .setFilepathOrBlob(filePathOrBlob)
-          .build();
-      } else if (
-        fileExtension === FileExtensions.doc ||
-        fileExtension === FileExtensions.docx
-      ) {
-        this.loggerService.debug({
-          ...loggerData,
-          message: 'init document builder',
-        });
-
-        const fileProcessorBuilder = FileProcessorBuilderFactory.getFileBuilder(
-          fileExtension,
-          this.loggerService,
-        );
-
-        fileProcessor = fileProcessorBuilder
-          .setFilepathOrBlob(filePathOrBlob)
-          .build();
-      } else {
-        this.loggerService.error({
-          ...loggerData,
-          message: `Unsupported file format: ${fileExtension}`,
-        });
-
-        return;
-      }
-
-      const proccessedDocuments = await fileProcessor.process();
-
-      const documentToEmbedd = proccessedDocuments.map(
-        (proccessedDocument, index) => {
-          const lines = flattenObject({
-            lines: proccessedDocument.metadata.loc,
-          });
-
-          const data: VectorDocument = {
-            id: `${params.documentId}#chunk_${index + 1}`,
-            text: proccessedDocument.pageContent,
-            metadata: {
-              knowledgebaseId: params.knowledgebaseId,
-              documentId: params.documentId,
-              source: VectorDocumentSource.DOCUMENT,
-              filename: document!.name,
-              bucketName: document!.bucketName.toLowerCase(),
-              ...lines,
-            },
+          const loggerData: ILoggerData = {
+            serviceName: 'FileProcessorEvents',
+            function: 'Event: PROCESS_INCOMING_WEBPAGE',
           };
 
-          return data;
-        },
-      );
-
-      const customerNamespace =
-        await this.pineconVectorStoreService.getNamespace(
-          params.knowledgebaseId,
-        );
-
-      await customerNamespace.addDocuments(documentToEmbedd);
-
-      await this.documentService.internalUpdate(
-        { _id: document._id },
-        { processingStatus: ProcessingStatus.COMPLETED },
-      );
-
-      this.loggerService.info({
-        ...loggerData,
-        message: 'execution completed',
-      });
-    } catch (error: any) {
-      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
-
-      if (document) {
-        await this.documentService
-          .internalUpdate(
-            { _id: document._id },
-            { processingStatus: ProcessingStatus.ERROR },
-          )
-          .catch(() => {
-            this.loggerService.error({
+          try {
+            this.loggerService.info(loggerData);
+            this.loggerService.debug({
               ...loggerData,
-              message: 'Failed to update document status',
+              message: 'processing webpage',
+              additionalArgs: {
+                crawledUrlId: params.crawlUrlId,
+                url: params.url,
+              },
             });
-          });
-      }
-    } finally {
-      if (s3TempDownloadPath) {
-        this.loggerService.info({
-          ...loggerData,
-          message: 'cleanupTempFile',
-        });
 
-        this.awsS3Service.download.cleanupTempFile(s3TempDownloadPath);
-      }
-    }
+            await this.websiteService.processWebsitePages(params);
+
+            this.loggerService.info({
+              ...loggerData,
+              message: 'execution completed',
+            });
+          } catch (error) {
+            this.loggerService.error(
+              { ...loggerData, message: 'failed' },
+              { error },
+            );
+          }
+        });
+      },
+    );
   }
 }

@@ -1,6 +1,8 @@
 AwsS3:
   buckets:
     knowledgebase: "rag-knowledgebase-staging"
+    crawler: "rag-crawler-staging"
 AwsSqs:
   Queues:
     FileProcessingQueue: "File-Processing-Queue-Staging"
+    CrawlContentQueue: "Crawl-Content-Queue-Staging"

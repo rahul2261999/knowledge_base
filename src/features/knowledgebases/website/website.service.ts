@@ -5,10 +5,22 @@ import { LoggingService } from 'src/lib/logger/logger.service';
 import { CreateWebsiteDto } from './dto/create-website.dto';
 import { KnowledgebasesService } from '../knowledgebases.service';
 import { Website } from './schema/website.schema';
-import { ProcessingStatus, Status } from 'src/core/constants/global.enum';
+import { CrawlingSessionStatus, FileExtensions, ProcessingStatus, Status, VectorDocumentSource } from 'src/core/constants/global.enum';
 import mongoose from 'mongoose';
 import NotFound from 'src/core/error/not-found';
 import { UpdateWebsiteDto } from './dto/update-website.dto';
+import { CrawledUrlAggregationResult, SessionStatusStats } from './webiste.type';
+import { ProcessWebpage } from 'src/features/events/events.type';
+import FileProcessorBuilderFactory from 'src/lib/file_processors/file-processor-builder.factory';
+import { BaseFileProcessor } from 'src/lib/file_processors/index.type';
+import { VectorDocument } from 'src/lib/vector_store/pinecone/types/pinecone.type';
+import { CrawlerService } from 'src/features/crawler/crawler.service';
+import { AwsS3Service } from 'src/lib/aws_s3/aws-s3.service';
+import { PineconeVectorStoreService } from 'src/lib/vector_store/pinecone/pinecone-vector-store.service';
+import mimetypes from 'mime-types';
+import { flattenObject } from 'src/utils/helper';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class WebsiteService {
@@ -16,6 +28,9 @@ export class WebsiteService {
     private readonly loggerService: LoggingService,
     private readonly websiteRepository: WebsiteRepo,
     private readonly knowledgeService: KnowledgebasesService,
+    private readonly crawlService: CrawlerService,
+    private readonly awsS3Service: AwsS3Service,
+    private readonly pineconeVectorStoreService: PineconeVectorStoreService,
   ) {}
 
   public async create(
@@ -172,6 +187,244 @@ export class WebsiteService {
       return updatedDocument;
     } catch (error) {
       this.loggerService.error({ ...loggerData, message: 'failed' });
+
+      throw error;
+    }
+  }
+
+  public async processWebsitePages(params: ProcessWebpage) {
+    const loggerData: ILoggerData = {
+      serviceName: 'WebsiteService',
+      function: 'processWebsitePages',
+      message: 'executing',
+    };
+
+    try {
+      this.loggerService.info(loggerData);
+
+      const checkCrawlSession = await this.crawlService.getCrawlingSession({
+        _id: new mongoose.Types.ObjectId(params.crawlingSessionId),
+      });
+
+      const parsedSession = checkCrawlSession.toJSON();
+
+      if (!parsedSession.active) {
+        throw new NotFound('Crawling session not found or inactive');
+      }
+
+      const fileExist = await this.awsS3Service.download.checkFileExists(
+        params.storageBucketName,
+        params.storagePath,
+      );
+
+      if (!fileExist) {
+        this.loggerService.error({
+          ...loggerData,
+          message: 'File does not exist',
+          additionalArgs: {
+            bucketName: params.bucketName,
+            storagePath: params.storagePath,
+          },
+        });
+
+        return;
+      }
+
+      const fileExtension = '.txt';
+
+      const s3Document = await this.awsS3Service.download.downloadSmallFile(
+        params.storageBucketName,
+        params.storagePath,
+      );
+
+      const mimetype = mimetypes.lookup(fileExtension);
+
+      const filePathOrBlob: string | Blob = new Blob(
+        [s3Document.buffer.buffer],
+        { type: mimetype || 'text/plain' },
+      );
+
+      let fileProcessor: BaseFileProcessor;
+
+      const fileProcessorBuilder = FileProcessorBuilderFactory.getFileBuilder(
+        FileExtensions.txt,
+        this.loggerService,
+      );
+
+      fileProcessor = fileProcessorBuilder
+        .setFilepathOrBlob(filePathOrBlob)
+        .build();
+
+      const proccessedDocuments = await fileProcessor.process();
+
+      const documentToEmbedd = proccessedDocuments.map(
+        (proccessedDocument, index) => {
+          const lines = flattenObject({
+            lines: proccessedDocument.metadata.loc,
+          });
+
+          const data: VectorDocument = {
+            id: `${params.crawlUrlId}#chunk_${index + 1}`,
+            text: proccessedDocument.pageContent,
+            metadata: {
+              knowledgebaseId: params.knowledgebaseId,
+              documentId: params.crawlUrlId,
+              crawlSessionId: params.crawlingSessionId,
+              source: VectorDocumentSource.WEBSITE,
+              url: params.url,
+              bucketName: params!.bucketName.toLowerCase(),
+              ...lines,
+            },
+          };
+
+          return data;
+        },
+      );
+
+      const customerNamespace =
+        await this.pineconeVectorStoreService.getNamespace(
+          params.knowledgebaseId,
+        );
+
+      await customerNamespace.addDocuments(documentToEmbedd);
+
+      this.loggerService.info({
+        ...loggerData,
+        message: 'execution completed',
+      });
+    } catch (error) {
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
+
+      throw error;
+    }
+  }
+
+  @Cron(CronExpression.EVERY_10_MINUTES, { name: 'crawl_progress_monitor', waitForCompletion: true })
+  public async crawlProgressMonitor() {
+    const loggerData: ILoggerData = {
+      serviceName: 'WebsiteService',
+      function: 'crawlProgressMonitor',
+      message: 'executing',
+    };
+
+    try {
+      this.loggerService.info(loggerData);
+
+      const crawlSessions = await this.crawlService.findCrawlingSessions({
+        status: CrawlingSessionStatus.IN_PROGRESS,
+        createdAt: { $gt: DateTime.now().minus({ days: 7 }).toUTC() }
+      });
+
+      if (!crawlSessions.length) {
+        this.loggerService.info({
+          ...loggerData,
+          message: 'No crawl sessions found',
+        });
+
+        return;
+      }
+
+      const sessionIds: mongoose.Types.ObjectId[] = [];
+      const sessionIdAndWebisteIdMap = new Map<string, string>();
+
+      crawlSessions.forEach((session) => {
+        sessionIds.push(session._id);
+        sessionIdAndWebisteIdMap.set(session._id.toString(), session.websiteId.toString());
+      });
+
+      const crawledUrlStats = await this.crawlService.crawlUrlAggregation<CrawledUrlAggregationResult[]>([
+        {
+          $match: {
+            crawlingSessionId: { $in: sessionIds }
+          }
+        },
+        {
+          $group: {
+            _id: {
+              sessionId: "$crawlingSessionId",
+              status: "$status"
+            },
+            count: { $sum: 1 }
+          }
+        },
+        {
+          $group: {
+            _id: "$_id.sessionId",
+            totalRecords: { $sum: "$count" },
+            statusCounts: {
+              $push: {
+                status: "$_id.status",
+                count: "$count"
+              }
+            }
+          }
+        }
+      ])
+
+      const websiteCrawlingCompleted: mongoose.Types.ObjectId[] = [];
+
+      const sessionStats: SessionStatusStats[] = crawledUrlStats.map(stat => ({
+        sessionId: stat._id.toString(),
+        totalRecords: stat.totalRecords,
+        statusCounts: stat.statusCounts.reduce((acc, curr) => {
+          acc[curr.status] = curr.count;
+          return acc;
+        }, {} as SessionStatusStats['statusCounts'])
+      }));
+
+      const bulkUpdateOperations = sessionStats.map(sessionStat => {
+        let totalCrawledUrls = 0;
+
+        if (sessionStat.statusCounts.SUCCESS) {
+          totalCrawledUrls += sessionStat.statusCounts.SUCCESS;
+        }
+
+        let sessionStatus: CrawlingSessionStatus;
+
+        if (sessionStat.statusCounts.PENDING && sessionStat.statusCounts.PENDING > 0) {
+          sessionStatus = CrawlingSessionStatus.IN_PROGRESS;
+        } else {
+          sessionStatus = CrawlingSessionStatus.COMPLETED;
+
+          if (sessionIdAndWebisteIdMap.has(sessionStat.sessionId)) {
+            const websiteId = sessionIdAndWebisteIdMap.get(sessionStat.sessionId)!
+            websiteCrawlingCompleted.push(new mongoose.Types.ObjectId(websiteId));
+          }
+        }
+
+        return {
+          updateOne: {
+            filter: { _id: new mongoose.Types.ObjectId(sessionStat.sessionId) },
+            update: {
+              $set: {
+                urlsCrawled: totalCrawledUrls,
+                status: sessionStatus
+              }
+            }
+          }
+        }
+      });
+
+      const bulkWriteResult = this.crawlService.crawlingSessionBulkWrite(bulkUpdateOperations);
+      const bulkUpdateWebsite = this.websiteRepository.update({
+        _id: { $in: websiteCrawlingCompleted }
+      }, {
+        processingStatus: ProcessingStatus.COMPLETED,
+      })
+
+      const resolvedPromises = await Promise.all([bulkWriteResult, bulkUpdateWebsite]);
+
+      const [bulkWriteResponse, updateWebsiteResult] = resolvedPromises;
+
+      this.loggerService.notice({ ...loggerData, message: "Bulk write response", additionalArgs: { bulkWriteResponse } });
+      this.loggerService.notice({ ...loggerData, message: "Update website response", additionalArgs: { updateWebsiteResult } });
+
+      this.loggerService.info({
+        ...loggerData,
+        message: 'execution completed',
+      });
+    } catch (error) {
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
       throw error;
     }

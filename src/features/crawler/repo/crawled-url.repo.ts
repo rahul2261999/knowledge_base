@@ -5,12 +5,15 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import {
+  AggregateOptions,
+  AnyBulkWriteOperation,
   DeleteResult,
   Model,
   RootFilterQuery,
   UpdateWriteOpResult,
 } from 'mongoose';
 import { CrawledUrl, CrawledUrlDocument } from '../schemas/crawled-url.model';
+import InternalServer from 'src/core/error/internal-server.error';
 
 @Injectable()
 class CrawledUrlRepo {
@@ -60,14 +63,14 @@ class CrawledUrlRepo {
     }
   }
 
-  public async updateOne(
+  public async update(
     filterOption: RootFilterQuery<CrawledUrl>,
     crawlUrl: Partial<CrawledUrl>,
   ): Promise<UpdateWriteOpResult> {
     try {
       Logger.log('executing: CrawledUrlRepo -> update');
 
-      const data = await this.crawledUrlModel.updateOne(filterOption, crawlUrl);
+      const data = await this.crawledUrlModel.updateMany(filterOption, crawlUrl);
 
       Logger.log('executed: CrawledUrlRepo -> update');
 
@@ -82,7 +85,7 @@ class CrawledUrlRepo {
       });
     }
   }
-
+  
   public async findOne(
     params: RootFilterQuery<CrawledUrl>,
   ): Promise<CrawledUrlDocument | null> {
@@ -146,6 +149,40 @@ class CrawledUrlRepo {
         cause: error,
         description: error.message,
       });
+    }
+  }
+
+  public async aggregation<T = any[]>(pipleine: any[], options?: AggregateOptions): Promise<T> {
+    try {
+      Logger.log('executing: CrawledUrlRepo -> aggregation');
+
+      const data = await this.crawledUrlModel.aggregate(pipleine, options);
+
+      Logger.log('executed: CrawledUrlRepo -> aggregation');
+
+      return data as T;
+    } catch (error) {
+      Logger.error('error: CrawledUrlRepo -> aggregation');
+      Logger.error(error, error.stack);
+
+      throw new InternalServer('something went wrong with aggregation pipeline');
+    }
+  }
+
+  public async bulkWrite(params: AnyBulkWriteOperation<CrawledUrl>[]) {
+    try {
+      Logger.log('executing: CrawledUrlRepo -> bulkWrite');
+
+      const data = await this.crawledUrlModel.bulkWrite(params);
+
+      Logger.log('executed: CrawledUrlRepo -> bulkWrite');
+
+      return data;
+    } catch (error) {
+      Logger.error('error: CrawledUrlRepo -> bulkWrite');
+      Logger.error(error, error.stack);
+
+      throw new InternalServer('something went wrong');
     }
   }
 }

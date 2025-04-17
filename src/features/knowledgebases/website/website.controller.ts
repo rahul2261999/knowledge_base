@@ -38,7 +38,7 @@ export class WebsiteController {
       excludeExtraneousValues: true,
     });
 
-    return new SuccessResponse('Document uploaded successfully', {
+    return new SuccessResponse('Website uploaded successfully', {
       data: resDto,
     });
   }

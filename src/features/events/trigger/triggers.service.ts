@@ -2,10 +2,8 @@ import { Injectable } from '@nestjs/common';
 import EventEmitter = require('events');
 import { CustomEventEmitter } from 'src/core/common/emitter';
 
-import {
-  EFileProcessorEvents,
-  IProcessIncomingFileAttrs,
-} from 'src/lib/file_processors/index.type';
+import { IProcessIncomingFileAttrs, ProcessWebpage } from '../events.type';
+import { EFileProcessorEvents } from '../events.enum';
 
 @Injectable()
 export class TriggerService {
@@ -15,7 +13,7 @@ export class TriggerService {
 
   public emitEvent(
     eventName: EFileProcessorEvents,
-    params: IProcessIncomingFileAttrs,
+    params: IProcessIncomingFileAttrs | ProcessWebpage,
   ) {
     this.eventEmitter.emit(eventName, params);
   }

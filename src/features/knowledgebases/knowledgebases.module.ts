@@ -22,6 +22,7 @@ import { WebsiteService } from './website/website.service';
 import { WebsiteController } from './website/website.controller';
 import { WebsiteRepo } from './website/website.repo';
 import { Website, WebsiteSchema } from './website/schema/website.schema';
+import { CrawlerModule } from '../crawler/crawler.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { Website, WebsiteSchema } from './website/schema/website.schema';
     AwsS3Module,
     TriggerModule,
     PineconeVectorStoreModule,
+    CrawlerModule
   ],
   controllers: [
     KnowledgebasesController,
@@ -56,6 +58,6 @@ import { Website, WebsiteSchema } from './website/schema/website.schema';
     WebsiteService,
     WebsiteRepo,
   ],
-  exports: [KnowledgebasesService, DocumentService],
+  exports: [KnowledgebasesService, DocumentService, WebsiteService],
 })
 export class KnowledgebasesModule {}

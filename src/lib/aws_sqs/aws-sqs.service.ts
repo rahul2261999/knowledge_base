@@ -5,6 +5,8 @@ import {
   MessageAttributeValue,
   MessageSystemAttributeValue,
   ReceiveMessageCommand,
+  SendMessageBatchCommand,
+  SendMessageBatchCommandOutput,
   SendMessageCommand,
   SQSClient,
 } from '@aws-sdk/client-sqs';
@@ -13,6 +15,7 @@ import { ConfigurationService } from 'src/core/configuration/configuration.servi
 import InternalServer from 'src/core/error/internal-server.error';
 import { LoggingService } from 'src/lib/logger/logger.service';
 import { ILoggerData } from 'src/lib/logger/logger.type';
+import { SqsMessage } from './aws-sqs-interface';
 
 @Injectable()
 export class AwsSqsService {
@@ -133,6 +136,71 @@ export class AwsSqsService {
       this.loggerService.info({ ...loggerData, message: 'executed' });
 
       return { sent: true, data: response };
+    } catch (error) {
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
+
+      return new InternalServer('Something went wrong while sending message');
+    }
+  }
+
+  public async sendMessageInBatch(
+    queueName: string,
+    messages: SqsMessage[],
+    options?: { batchSize?: number },
+  ) {
+    const loggerData: ILoggerData = {
+      serviceName: 'AwsSqsService',
+      function: 'sendMessage',
+      message: 'executing',
+    };
+
+    try {
+      this.loggerService.info(loggerData);
+
+      const queueUrl = await this.getQueue(queueName);
+
+      if (!queueUrl) {
+        return new InternalServer('Queue does not exist');
+      }
+
+      // AWS SQS has a limit of 10 messages per batch
+      const batchSize =
+        options &&
+        options.batchSize &&
+        options.batchSize >= 1 &&
+        options.batchSize <= 10
+          ? options.batchSize
+          : 10;
+      const results: SendMessageBatchCommandOutput[] = [];
+
+      // Process messages in batches of 10
+      for (let i = 0; i < messages.length; i += batchSize) {
+        const batch = messages.slice(i, i + batchSize);
+
+        const entries = batch.map((message, index) => ({
+          Id: `msg_${i}_${index}`,
+          DelaySeconds: 10,
+          MessageAttributes: message.attributes,
+          MessageBody: message.body ? JSON.stringify(message.body) : undefined,
+        }));
+
+        const command = new SendMessageBatchCommand({
+          QueueUrl: queueUrl,
+          Entries: entries,
+        });
+
+        const response = await this.sqsClient.send(command);
+        results.push(response);
+
+        this.loggerService.debug({
+          ...loggerData,
+          message: `Batch sent to queue, successful: ${response.Successful?.length}, failed: ${response.Failed?.length}`,
+        });
+      }
+
+      this.loggerService.info({ ...loggerData, message: 'executed' });
+
+      return { sent: true, data: results };
     } catch (error) {
       this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 

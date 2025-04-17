@@ -6,6 +6,7 @@ import {
   IsNumber,
   Min,
   Max,
+  IsBoolean,
 } from 'class-validator';
 
 export class CrawlDto {
@@ -14,6 +15,12 @@ export class CrawlDto {
     message: 'webiste Id is required and must be a string',
   })
   websiteId: string;
+
+  @IsString({
+    always: true,
+    message: 'knowledgebase Id is required and must be a string',
+  })
+  knowledgebaseId: string;
 
   @IsString({
     always: true,
@@ -28,4 +35,9 @@ export class CrawlDto {
   @IsNumber()
   @Transform(({ value }) => (value === undefined ? 2 : value))
   depth: number;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => (value === undefined ? false : value))
+  forceRefresh?: boolean;
 }

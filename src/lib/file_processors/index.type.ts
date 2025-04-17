@@ -38,8 +38,14 @@ export interface IPdfProcessorBuilderMethods {
   build(): BaseFileProcessor;
 }
 
+export interface ITxtProcessorBuilderMethods {
+  setFilepathOrBlob(filepathOrBlob: string | Blob): this;
+  build(): BaseFileProcessor;
+}
+
 export interface BaseFileBuilderMethods {
   [FileExtensions.doc]: IDocProcessorBuilderMethods;
   [FileExtensions.docx]: IDocProcessorBuilderMethods;
   [FileExtensions.pdf]: IPdfProcessorBuilderMethods;
+  [FileExtensions.txt]: ITxtProcessorBuilderMethods;
 }

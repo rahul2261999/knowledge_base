@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import {
+  AnyBulkWriteOperation,
   DeleteResult,
   Model,
   RootFilterQuery,
@@ -14,6 +15,7 @@ import {
   CrawlingSession,
   CrawlingSessionDocument,
 } from '../schemas/crawling-session.model';
+import InternalServer from 'src/core/error/internal-server.error';
 
 @Injectable()
 class CrawlingSessionRepo {
@@ -44,14 +46,14 @@ class CrawlingSessionRepo {
     }
   }
 
-  public async updateOne(
+  public async update(
     filterOption: RootFilterQuery<CrawlingSession>,
     webiste: Partial<CrawlingSession>,
   ): Promise<UpdateWriteOpResult> {
     try {
       Logger.log('executing: CrawlingSessionRepo -> update');
 
-      const data = await this.crawlingSessionModel.updateOne(
+      const data = await this.crawlingSessionModel.updateMany(
         filterOption,
         webiste,
       );
@@ -135,6 +137,23 @@ class CrawlingSessionRepo {
       });
     }
   }
+
+  public async bulkWrite(params: AnyBulkWriteOperation<CrawlingSession>[]) {
+      try {
+        Logger.log('executing: CrawlingSessionRepo -> bulkWrite');
+  
+        const data = await this.crawlingSessionModel.bulkWrite(params);
+  
+        Logger.log('executed: CrawlingSessionRepo -> bulkWrite');
+  
+        return data;
+      } catch (error) {
+        Logger.error('error: CrawlingSessionRepo -> bulkWrite');
+        Logger.error(error, error.stack);
+  
+        throw new InternalServer('something went wrong');
+      }
+    }
 }
 
 export { CrawlingSessionRepo };

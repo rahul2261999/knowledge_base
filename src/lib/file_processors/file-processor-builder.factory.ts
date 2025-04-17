@@ -1,9 +1,9 @@
 import { FileExtensions } from '../../core/constants/global.enum';
 import { LoggingService } from '../logger/logger.service';
-import { PineconeVectorStoreService } from '../vector_store/pinecone/pinecone-vector-store.service';
 import DocProcessorBuilder from './doc/doc-processsor.builder';
 import { BaseFileBuilderMethods } from './index.type';
 import PdfProcessorBuilder from './pdf/pdf-processor.builder';
+import TxtProcessorBuilder from './txt/txt-processor.builder';
 
 class FileProcessorBuilderFactory {
   private constructor() {}
@@ -20,6 +20,10 @@ class FileProcessorBuilderFactory {
       case FileExtensions.doc:
       case FileExtensions.docx:
         return new DocProcessorBuilder(
+          loggerService,
+        ) as unknown as BaseFileBuilderMethods[K];
+      case FileExtensions.txt:
+        return new TxtProcessorBuilder(
           loggerService,
         ) as unknown as BaseFileBuilderMethods[K];
       default:

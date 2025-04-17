@@ -59,11 +59,13 @@ import yaml from 'js-yaml';
         AwsS3: Joi.object({
           buckets: Joi.object({
             knowledgebase: Joi.string().required(),
+            crawler: Joi.string().required(),
           }),
         }),
         AwsSqs: Joi.object({
           Queues: Joi.object({
             FileProcessingQueue: Joi.string().required(),
+            CrawlContentQueue: Joi.string().required(),
           }),
         }),
       }),

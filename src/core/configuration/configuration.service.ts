@@ -21,9 +21,10 @@ export class ConfigurationService {
   }
 
   getS3Buckets() {
-    const buckets = this.configService.get<{ knowledgebase: string }>(
-      'AwsS3.buckets',
-    );
+    const buckets = this.configService.get<{
+      knowledgebase: string;
+      crawler: string;
+    }>('AwsS3.buckets');
 
     if (!buckets) {
       throw new InternalServerErrorException(
@@ -64,9 +65,10 @@ export class ConfigurationService {
   }
 
   getQueueNames() {
-    const queues = this.configService.get<{ FileProcessingQueue: string }>(
-      'AwsSqs.Queues',
-    )!;
+    const queues = this.configService.get<{
+      FileProcessingQueue: string;
+      CrawlContentQueue: string;
+    }>('AwsSqs.Queues')!;
 
     return queues;
   }

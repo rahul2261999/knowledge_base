@@ -138,7 +138,7 @@ export class QueueReceiverService implements OnApplicationBootstrap {
 
                     // Process the message
 
-                    await this.fileProcessorEvents.processFile(messageBody);
+                    // await this.fileProcessorEvents.processFile(messageBody);
 
                     // If processing successful, delete the message
                     await this.awsSqsService.deleteMessage(

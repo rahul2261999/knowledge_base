@@ -12,6 +12,7 @@ import { AlsModule } from './core/common/als/als.module';
 import { AlsService } from './core/common/als/als.service';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TracingInterceptor } from './core/common/tracing.interceptor';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { TracingInterceptor } from './core/common/tracing.interceptor';
     KnowledgebasesModule,
     FileProcessorModule,
     AlsModule,
+    ScheduleModule.forRoot()
   ],
   controllers: [AppController],
   providers: [

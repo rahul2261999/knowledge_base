@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
 import { LoggingService } from '../logger/logger.service';
@@ -75,6 +76,39 @@ export class AwsS3Service {
       throw new InternalServer('Failed to upload file to S3');
     }
   }
+
+  public async uploadTextToS3(bukcetName: string, key: string, text: string) {
+    const logggerData: ILoggerData = {
+      serviceName: 'AwsS3Service',
+      function: 'uploadTextToS3',
+      message: 'Upload text to S3',
+    };
+
+    try {
+      this.loggerService.info(logggerData);
+
+      const command = new PutObjectCommand({
+        Bucket: bukcetName,
+        Key: key,
+        Body: text,
+        ContentType: 'text/plain',
+      });
+
+      await this.s3Client.send(command);
+
+      this.loggerService.info({ ...logggerData, message: 'executed' });
+
+      return { key };
+    } catch (error) {
+      this.loggerService.error(
+        { ...logggerData, message: 'failed' },
+        { error },
+      );
+
+      throw new InternalServer('Failed to upload text to S3');
+    }
+  }
+
 
   public async getFileUrl(bucketname: string, key: string) {
     const logData: ILoggerData = {
