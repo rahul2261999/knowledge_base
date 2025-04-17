@@ -109,7 +109,6 @@ export class AwsS3Service {
     }
   }
 
-
   public async getFileUrl(bucketname: string, key: string) {
     const logData: ILoggerData = {
       serviceName: 'AwsS3Service',

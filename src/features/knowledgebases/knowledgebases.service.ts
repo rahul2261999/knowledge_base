@@ -7,10 +7,8 @@ import NotFound from 'src/core/error/not-found';
 import { QueryDto } from './dto/query.dto';
 import { PineconeVectorStoreService } from 'src/lib/vector_store/pinecone/pinecone-vector-store.service';
 import { FetchedVectorDocument } from 'src/lib/vector_store/pinecone/types/pinecone.type';
-import BadRequest from 'src/core/error/bad-request';
 import { DeleteResult } from 'mongoose';
 import { Status } from 'src/core/constants/global.enum';
-import { BaseParamsDto } from './dto/base-params.dto';
 import { Knowledgebase } from './schema/knowledgebase.schema';
 
 @Injectable()
@@ -141,7 +139,7 @@ export class KnowledgebasesService {
       await this.findOne(knowledgebaseId);
 
       const namespace =
-        await this.pineconeVectorService.getNamespace(knowledgebaseId);
+        this.pineconeVectorService.getNamespace(knowledgebaseId);
 
       let filter: object | undefined;
 

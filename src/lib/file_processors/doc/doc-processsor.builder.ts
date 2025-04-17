@@ -1,7 +1,6 @@
 import { LoggingService } from 'src/lib/logger/logger.service';
 import { BaseFileProcessor, IDocProcessorBuilderMethods } from '../index.type';
 import DocxProcessor from './doc-processor';
-import { PineconeVectorStoreService } from 'src/lib/vector_store/pinecone/pinecone-vector-store.service';
 
 class DocProcessorBuilder implements IDocProcessorBuilderMethods {
   private filePathOrBlob: string | Blob | null;

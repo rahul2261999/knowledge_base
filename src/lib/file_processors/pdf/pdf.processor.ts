@@ -1,6 +1,5 @@
 import { Document } from '@langchain/core/documents';
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
-import { BaseFileProcessor } from '../index.type';
 import { IPdfLoaderParams } from './pdf.type';
 import AbstractFileProcessor from '../index.processor';
 import { LoggingService } from 'src/lib/logger/logger.service';

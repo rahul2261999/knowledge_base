@@ -1,12 +1,10 @@
 export function unflattenObject(
   flatObj: Record<string, any>,
 ): Record<string, any> {
-  const result: Record<string, any> = {};
+  const result: NestedObject = {};
 
   // Iterate through all keys in the flat object
   for (const key in flatObj) {
-    if (!flatObj.hasOwnProperty(key)) continue;
-
     // Split the key into parts
     const parts = key.split('.');
 
@@ -21,11 +19,12 @@ export function unflattenObject(
         current[part] = parts[i + 1].match(/^\d+$/) ? [] : {};
       }
 
-      current = current[part];
+      current = current[part] as NestedObject;
     }
 
     // Assign the final value
     const lastPart = parts[parts.length - 1];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     current[lastPart] = flatObj[key];
   }
 
@@ -50,6 +49,7 @@ export function flattenObject(
       // Recursively flatten nested objects
       return {
         ...acc,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         ...flattenObject(obj[key], newPrefix),
       };
     }
@@ -57,6 +57,7 @@ export function flattenObject(
     // For non-object values or arrays, add to the accumulator with dot-separated key
     return {
       ...acc,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [newPrefix]: obj[key],
     };
   }, {});

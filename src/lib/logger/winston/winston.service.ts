@@ -22,6 +22,7 @@ class WinstonService implements ILoggerClientMethods {
         Winston.format.timestamp({ format: 'DD-MM-YYYY HH:mm:ss' }),
         Winston.format.colorize({ all: true }),
         Winston.format.printf(
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           (info) => `${info.timestamp} ${info.level}: ${info.message}`,
         ),
         Winston.format.errors({ stack: true }),
@@ -40,32 +41,35 @@ class WinstonService implements ILoggerClientMethods {
     });
 
     Winston.addColors({
-      error: "red bold",
-      alert: "magenta bold",
-      warn: "yellow bold",
-      info: "green",
-      notice: "white bold",
-      debug: "blue",
-    })
+      error: 'red bold',
+      alert: 'magenta bold',
+      warn: 'yellow bold',
+      info: 'green',
+      notice: 'white bold',
+      debug: 'blue',
+    });
   }
 
   public info(...args: any[]): void {
-    args.forEach(args => this.winston.info(args))
+    args.forEach((args) => this.winston.info(args));
   }
   public notice(...args: any[]): void {
-    args.forEach(args => this.winston.notice(args))
+    args.forEach((args) => this.winston.notice(args));
   }
   public debug(...args: any[]): void {
-    args.forEach(args => this.winston.debug(args))
+    args.forEach((args) => this.winston.debug(args));
   }
   public error(...args: any[]): void {
-    args.forEach(args => args && this.winston.error(args, args?.stack))
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    args.forEach((args) => args && this.winston.error(args, args?.stack));
   }
   public alert(...args: any[]): void {
-    args.forEach(args => args && this.winston.alert(args, args?.stack))
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    args.forEach((args) => args && this.winston.alert(args, args?.stack));
   }
   public warn(...args: any[]): void {
-    args.forEach(args => args && this.winston.warn(args))
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    args.forEach((args) => args && this.winston.warn(args));
   }
 }
 

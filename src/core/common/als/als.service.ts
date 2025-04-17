@@ -15,8 +15,11 @@ export class AlsService<T extends BaseTraceContext = BaseTraceContext> {
     this.als = new AsyncLocalStorage();
   }
 
-  public runContext(data: Map<keyof T, T[keyof T]>, cb: () => void): void {
-    this.als.run(data, cb);
+  public runContext(
+    data: Map<keyof T, T[keyof T]>,
+    cb: () => Promise<void> | void,
+  ): void {
+    void this.als.run(data, cb);
   }
 
   public setData<K extends keyof T>(key: K, value: T[K]): void {

@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Expose, Transform } from 'class-transformer';
-import { IsDate, IsEnum, IsString } from 'class-validator';
+import { IsEnum, IsString } from 'class-validator';
 import { Status } from 'src/core/constants/global.enum';
 
 export class KnowledgebaseResDto {

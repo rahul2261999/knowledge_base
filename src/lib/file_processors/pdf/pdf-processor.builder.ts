@@ -1,5 +1,4 @@
 import { LoggingService } from 'src/lib/logger/logger.service';
-import { PineconeVectorStoreService } from 'src/lib/vector_store/pinecone/pinecone-vector-store.service';
 import { BaseFileProcessor, IPdfProcessorBuilderMethods } from '../index.type';
 import PdfProcessor from './pdf.processor';
 import { IPdfLoaderParams } from './pdf.type';

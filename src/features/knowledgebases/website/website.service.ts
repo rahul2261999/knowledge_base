@@ -5,11 +5,20 @@ import { LoggingService } from 'src/lib/logger/logger.service';
 import { CreateWebsiteDto } from './dto/create-website.dto';
 import { KnowledgebasesService } from '../knowledgebases.service';
 import { Website } from './schema/website.schema';
-import { CrawlingSessionStatus, FileExtensions, ProcessingStatus, Status, VectorDocumentSource } from 'src/core/constants/global.enum';
+import {
+  CrawlingSessionStatus,
+  FileExtensions,
+  ProcessingStatus,
+  Status,
+  VectorDocumentSource,
+} from 'src/core/constants/global.enum';
 import mongoose from 'mongoose';
 import NotFound from 'src/core/error/not-found';
 import { UpdateWebsiteDto } from './dto/update-website.dto';
-import { CrawledUrlAggregationResult, SessionStatusStats } from './webiste.type';
+import {
+  CrawledUrlAggregationResult,
+  SessionStatusStats,
+} from './webiste.type';
 import { ProcessWebpage } from 'src/features/events/events.type';
 import FileProcessorBuilderFactory from 'src/lib/file_processors/file-processor-builder.factory';
 import { BaseFileProcessor } from 'src/lib/file_processors/index.type';
@@ -244,14 +253,12 @@ export class WebsiteService {
         { type: mimetype || 'text/plain' },
       );
 
-      let fileProcessor: BaseFileProcessor;
-
       const fileProcessorBuilder = FileProcessorBuilderFactory.getFileBuilder(
         FileExtensions.txt,
         this.loggerService,
       );
 
-      fileProcessor = fileProcessorBuilder
+      const fileProcessor = fileProcessorBuilder
         .setFilepathOrBlob(filePathOrBlob)
         .build();
 
@@ -272,7 +279,7 @@ export class WebsiteService {
               crawlSessionId: params.crawlingSessionId,
               source: VectorDocumentSource.WEBSITE,
               url: params.url,
-              bucketName: params!.bucketName.toLowerCase(),
+              bucketName: params.bucketName.toLowerCase(),
               ...lines,
             },
           };
@@ -281,10 +288,9 @@ export class WebsiteService {
         },
       );
 
-      const customerNamespace =
-        await this.pineconeVectorStoreService.getNamespace(
-          params.knowledgebaseId,
-        );
+      const customerNamespace = this.pineconeVectorStoreService.getNamespace(
+        params.knowledgebaseId,
+      );
 
       await customerNamespace.addDocuments(documentToEmbedd);
 
@@ -299,7 +305,10 @@ export class WebsiteService {
     }
   }
 
-  @Cron(CronExpression.EVERY_10_MINUTES, { name: 'crawl_progress_monitor', waitForCompletion: true })
+  @Cron(CronExpression.EVERY_10_MINUTES, {
+    name: 'crawl_progress_monitor',
+    waitForCompletion: true,
+  })
   public async crawlProgressMonitor() {
     const loggerData: ILoggerData = {
       serviceName: 'WebsiteService',
@@ -312,7 +321,7 @@ export class WebsiteService {
 
       const crawlSessions = await this.crawlService.findCrawlingSessions({
         status: CrawlingSessionStatus.IN_PROGRESS,
-        createdAt: { $gt: DateTime.now().minus({ days: 7 }).toUTC() }
+        createdAt: { $gt: DateTime.now().minus({ days: 7 }).toUTC() },
       });
 
       if (!crawlSessions.length) {
@@ -329,50 +338,60 @@ export class WebsiteService {
 
       crawlSessions.forEach((session) => {
         sessionIds.push(session._id);
-        sessionIdAndWebisteIdMap.set(session._id.toString(), session.websiteId.toString());
+        sessionIdAndWebisteIdMap.set(
+          session._id.toString(),
+          session.websiteId.toString(),
+        );
       });
 
-      const crawledUrlStats = await this.crawlService.crawlUrlAggregation<CrawledUrlAggregationResult[]>([
+      const crawledUrlStats = await this.crawlService.crawlUrlAggregation<
+        CrawledUrlAggregationResult[]
+      >([
         {
           $match: {
-            crawlingSessionId: { $in: sessionIds }
-          }
+            crawlingSessionId: { $in: sessionIds },
+          },
         },
         {
           $group: {
             _id: {
-              sessionId: "$crawlingSessionId",
-              status: "$status"
+              sessionId: '$crawlingSessionId',
+              status: '$status',
             },
-            count: { $sum: 1 }
-          }
+            count: { $sum: 1 },
+          },
         },
         {
           $group: {
-            _id: "$_id.sessionId",
-            totalRecords: { $sum: "$count" },
+            _id: '$_id.sessionId',
+            totalRecords: { $sum: '$count' },
             statusCounts: {
               $push: {
-                status: "$_id.status",
-                count: "$count"
-              }
-            }
-          }
-        }
-      ])
+                status: '$_id.status',
+                count: '$count',
+              },
+            },
+          },
+        },
+      ]);
 
       const websiteCrawlingCompleted: mongoose.Types.ObjectId[] = [];
 
-      const sessionStats: SessionStatusStats[] = crawledUrlStats.map(stat => ({
-        sessionId: stat._id.toString(),
-        totalRecords: stat.totalRecords,
-        statusCounts: stat.statusCounts.reduce((acc, curr) => {
-          acc[curr.status] = curr.count;
-          return acc;
-        }, {} as SessionStatusStats['statusCounts'])
-      }));
+      const sessionStats: SessionStatusStats[] = crawledUrlStats.map(
+        (stat) => ({
+          sessionId: stat._id.toString(),
+          totalRecords: stat.totalRecords,
+          statusCounts: stat.statusCounts.reduce(
+            (acc, curr) => {
+              acc[curr.status] = curr.count;
+              return acc;
+            },
+            {} as SessionStatusStats['statusCounts'],
+          ),
+        }),
+      );
 
-      const bulkUpdateOperations = sessionStats.map(sessionStat => {
+      const bulkUpdateOperations = sessionStats.map((sessionStat) => {
         let totalCrawledUrls = 0;
 
         if (sessionStat.statusCounts.SUCCESS) {
@@ -381,14 +400,21 @@ export class WebsiteService {
 
         let sessionStatus: CrawlingSessionStatus;
 
-        if (sessionStat.statusCounts.PENDING && sessionStat.statusCounts.PENDING > 0) {
+        if (
+          sessionStat.statusCounts.PENDING &&
+          sessionStat.statusCounts.PENDING > 0
+        ) {
           sessionStatus = CrawlingSessionStatus.IN_PROGRESS;
         } else {
           sessionStatus = CrawlingSessionStatus.COMPLETED;
 
           if (sessionIdAndWebisteIdMap.has(sessionStat.sessionId)) {
-            const websiteId = sessionIdAndWebisteIdMap.get(sessionStat.sessionId)!
-            websiteCrawlingCompleted.push(new mongoose.Types.ObjectId(websiteId));
+            const websiteId = sessionIdAndWebisteIdMap.get(
+              sessionStat.sessionId,
+            )!;
+            websiteCrawlingCompleted.push(
+              new mongoose.Types.ObjectId(websiteId),
+            );
           }
         }
 
@@ -398,26 +424,41 @@ export class WebsiteService {
             update: {
               $set: {
                 urlsCrawled: totalCrawledUrls,
-                status: sessionStatus
-              }
-            }
-          }
-        }
+                status: sessionStatus,
+              },
+            },
+          },
+        };
       });
 
-      const bulkWriteResult = this.crawlService.crawlingSessionBulkWrite(bulkUpdateOperations);
-      const bulkUpdateWebsite = this.websiteRepository.update({
-        _id: { $in: websiteCrawlingCompleted }
-      }, {
-        processingStatus: ProcessingStatus.COMPLETED,
-      })
+      const bulkWriteResult =
+        this.crawlService.crawlingSessionBulkWrite(bulkUpdateOperations);
+      const bulkUpdateWebsite = this.websiteRepository.update(
+        {
+          _id: { $in: websiteCrawlingCompleted },
+        },
+        {
+          processingStatus: ProcessingStatus.COMPLETED,
+        },
+      );
 
-      const resolvedPromises = await Promise.all([bulkWriteResult, bulkUpdateWebsite]);
+      const resolvedPromises = await Promise.all([
+        bulkWriteResult,
+        bulkUpdateWebsite,
+      ]);
 
       const [bulkWriteResponse, updateWebsiteResult] = resolvedPromises;
 
-      this.loggerService.notice({ ...loggerData, message: "Bulk write response", additionalArgs: { bulkWriteResponse } });
-      this.loggerService.notice({ ...loggerData, message: "Update website response", additionalArgs: { updateWebsiteResult } });
+      this.loggerService.notice({
+        ...loggerData,
+        message: 'Bulk write response',
+        additionalArgs: { bulkWriteResponse },
+      });
+      this.loggerService.notice({
+        ...loggerData,
+        message: 'Update website response',
+        additionalArgs: { updateWebsiteResult },
+      });
 
       this.loggerService.info({
         ...loggerData,

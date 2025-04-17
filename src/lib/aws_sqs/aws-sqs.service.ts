@@ -3,7 +3,6 @@ import {
   DeleteMessageCommand,
   GetQueueUrlCommand,
   MessageAttributeValue,
-  MessageSystemAttributeValue,
   ReceiveMessageCommand,
   SendMessageBatchCommand,
   SendMessageBatchCommandOutput,

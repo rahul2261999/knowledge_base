@@ -4,7 +4,6 @@ import { UpdateDocumentDto } from './dto/update-document.dto';
 import { LoggingService } from 'src/lib/logger/logger.service';
 import { DocumentRepo } from './document.repo';
 import { ILoggerData } from 'src/lib/logger/logger.type';
-import { DocumentBaseParamsDto } from './dto/base-param.dto';
 import { KnowledgebasesService } from '../knowledgebases.service';
 import { Document } from './schema/document.schema';
 import { AwsS3Service } from 'src/lib/aws_s3/aws-s3.service';
@@ -231,7 +230,7 @@ export class DocumentService {
         document.url,
       );
 
-      const pineconeNamespace = await this.pineconeVectorService.getNamespace(
+      const pineconeNamespace = this.pineconeVectorService.getNamespace(
         document.knowledgebaseId,
       );
 

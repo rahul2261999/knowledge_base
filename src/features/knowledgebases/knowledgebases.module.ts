@@ -43,7 +43,7 @@ import { CrawlerModule } from '../crawler/crawler.module';
     AwsS3Module,
     TriggerModule,
     PineconeVectorStoreModule,
-    CrawlerModule
+    CrawlerModule,
   ],
   controllers: [
     KnowledgebasesController,

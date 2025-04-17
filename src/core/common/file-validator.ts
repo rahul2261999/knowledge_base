@@ -39,7 +39,7 @@ export class FileTypeValidator extends FileValidator {
     return false;
   }
 
-  buildErrorMessage(file: any): string {
+  buildErrorMessage(): string {
     return `Invalid file type. Only PDF, DOC, DOCX and TXT are allowed.`;
   }
 }

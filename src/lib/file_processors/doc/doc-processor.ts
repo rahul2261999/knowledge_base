@@ -1,9 +1,7 @@
 import { Document } from '@langchain/core/documents';
 import { DocxLoader } from '@langchain/community/document_loaders/fs/docx';
 import AbstractFileProcessor from '../index.processor';
-import { BaseFileProcessor } from '../index.type';
 import { LoggingService } from 'src/lib/logger/logger.service';
-import { PineconeVectorStoreService } from 'src/lib/vector_store/pinecone/pinecone-vector-store.service';
 import InternalServer from 'src/core/error/internal-server.error';
 
 class DocxProcessor extends AbstractFileProcessor {

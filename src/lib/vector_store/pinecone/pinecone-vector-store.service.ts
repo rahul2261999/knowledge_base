@@ -27,7 +27,7 @@ export class PineconeVectorStoreService implements BaseVectorStore {
     );
   }
 
-  public async getNamespace(namespaceId: string) {
+  public getNamespace(namespaceId: string) {
     const loggerData: ILoggerData = {
       serviceName: 'PineconeVectorStoreService',
       function: 'getNamespace',

@@ -13,12 +13,13 @@ import { AlsService } from './core/common/als/als.service';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TracingInterceptor } from './core/common/tracing.interceptor';
 import { ScheduleModule } from '@nestjs/schedule';
+import { NextFunction, Request } from 'express';
 
 @Module({
   imports: [
     ConfigurationModule,
     MongooseModule.forRootAsync({
-      useFactory: async (configurationService: ConfigurationService) => ({
+      useFactory: (configurationService: ConfigurationService) => ({
         uri: configurationService.getMongoUri(),
       }),
       inject: [ConfigurationService],
@@ -28,7 +29,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     KnowledgebasesModule,
     FileProcessorModule,
     AlsModule,
-    ScheduleModule.forRoot()
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [
@@ -44,8 +45,8 @@ export class AppModule implements NestModule {
 
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply((req, _, next) => {
-        const traceId = req.headers['x-trace-id'];
+      .apply((req: Request, _, next: NextFunction) => {
+        const traceId = req.headers['x-trace-id'] as string | undefined;
 
         this.alsService.runContext(new Map(), () => {
           this.alsService.setTraceId(traceId);

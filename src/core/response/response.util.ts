@@ -1,5 +1,3 @@
-import { AlsService } from '../common/als/als.service';
-import constant from '../constants/constant';
 import { HttpStatus } from '@nestjs/common';
 
 class SuccessResponse<T> {

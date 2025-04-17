@@ -17,7 +17,7 @@ export class FileStorage {
   public static createDir(dirPath: string): void {
     const finalPath = path.join(process.cwd(), dirPath);
 
-    if (!this.dirExists(dirPath)) {
+    if (!this.dirExists(finalPath)) {
       fs.mkdirSync(dirPath, { recursive: true });
     }
   }

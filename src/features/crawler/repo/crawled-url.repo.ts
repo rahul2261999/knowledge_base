@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import {
   AggregateOptions,
@@ -14,52 +10,59 @@ import {
 } from 'mongoose';
 import { CrawledUrl, CrawledUrlDocument } from '../schemas/crawled-url.model';
 import InternalServer from 'src/core/error/internal-server.error';
+import { LoggingService } from 'src/lib/logger/logger.service';
+import { ILoggerData } from 'src/lib/logger/logger.type';
 
 @Injectable()
 class CrawledUrlRepo {
   constructor(
     @InjectModel(CrawledUrl.name) private crawledUrlModel: Model<CrawledUrl>,
+    private readonly loggerService: LoggingService,
   ) {}
 
   public async create(crawlUrl: CrawledUrl): Promise<CrawledUrlDocument> {
+    const loggerData: ILoggerData = {
+      serviceName: 'CrawledUrlRepo',
+      function: 'create',
+      message: 'executing',
+    };
+
     try {
-      Logger.log('executing: CrawledUrlRepo -> create');
+      this.loggerService.info(loggerData);
 
       const data = await this.crawledUrlModel.create(crawlUrl);
 
-      Logger.log('executed: CrawledUrlRepo -> create');
+      this.loggerService.info({ ...loggerData, message: 'executed' });
 
       return data;
     } catch (error) {
-      Logger.error('error: CrawledUrlRepo -> create');
-      Logger.error(error, error.stack);
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
-      throw new InternalServerErrorException('something went wrong', {
-        cause: error,
-        description: error.message,
-      });
+      throw new InternalServer('something went wrong');
     }
   }
 
   public async bulkCreate(
     crawlUrls: CrawledUrl[],
   ): Promise<CrawledUrlDocument[]> {
+    const loggerData: ILoggerData = {
+      serviceName: 'CrawledUrlRepo',
+      function: 'bulkCreate',
+      message: 'executing',
+    };
+
     try {
-      Logger.log('executing: CrawledUrlRepo -> bulkCreate');
+      this.loggerService.info(loggerData);
 
       const data = await this.crawledUrlModel.create(crawlUrls);
 
-      Logger.log('executed: CrawledUrlRepo -> bulkCreate');
+      this.loggerService.info({ ...loggerData, message: 'executed' });
 
       return data;
     } catch (error) {
-      Logger.error('error: CrawledUrlRepo -> bulkCreate');
-      Logger.error(error, error.stack);
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
-      throw new InternalServerErrorException('something went wrong', {
-        cause: error,
-        description: error.message,
-      });
+      throw new InternalServer('something went wrong');
     }
   }
 
@@ -67,120 +70,146 @@ class CrawledUrlRepo {
     filterOption: RootFilterQuery<CrawledUrl>,
     crawlUrl: Partial<CrawledUrl>,
   ): Promise<UpdateWriteOpResult> {
+    const loggerData: ILoggerData = {
+      serviceName: 'CrawledUrlRepo',
+      function: 'update',
+      message: 'executing',
+    };
+
     try {
-      Logger.log('executing: CrawledUrlRepo -> update');
+      this.loggerService.info(loggerData);
 
-      const data = await this.crawledUrlModel.updateMany(filterOption, crawlUrl);
+      const data = await this.crawledUrlModel.updateMany(
+        filterOption,
+        crawlUrl,
+      );
 
-      Logger.log('executed: CrawledUrlRepo -> update');
+      this.loggerService.info({ ...loggerData, message: 'executed' });
 
       return data;
     } catch (error) {
-      Logger.error('error: CrawledUrlRepo -> update');
-      Logger.error(error, error.stack);
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
-      throw new InternalServerErrorException('something went wrong', {
-        cause: error,
-        description: error.message,
-      });
+      throw new InternalServer('something went wrong');
     }
   }
-  
+
   public async findOne(
     params: RootFilterQuery<CrawledUrl>,
   ): Promise<CrawledUrlDocument | null> {
+    const loggerData: ILoggerData = {
+      serviceName: 'CrawledUrlRepo',
+      function: 'findOne',
+      message: 'executing',
+    };
+
     try {
-      Logger.log('executing: CrawledUrlRepo -> findOne');
+      this.loggerService.info(loggerData);
 
       const data = await this.crawledUrlModel.findOne(params);
 
-      Logger.log('executed: CrawledUrlRepo -> findOne');
+      this.loggerService.info({ ...loggerData, message: 'executed' });
 
       return data;
     } catch (error) {
-      Logger.error('error: CrawledUrlRepo -> findOne');
-      Logger.error(error, error.stack);
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
-      throw new InternalServerErrorException('something went wrong', {
-        cause: error,
-        description: error.message,
-      });
+      throw new InternalServer('something went wrong');
     }
   }
 
   public async find(
     params: RootFilterQuery<CrawledUrl>,
   ): Promise<CrawledUrlDocument[]> {
+    const loggerData: ILoggerData = {
+      serviceName: 'CrawledUrlRepo',
+      function: 'find',
+      message: 'executing',
+    };
+
     try {
-      Logger.log('executing: CrawledUrlRepo -> find');
+      this.loggerService.info(loggerData);
 
       const data = await this.crawledUrlModel.find(params);
 
-      Logger.log('executed: CrawledUrlRepo -> find');
+      this.loggerService.info({ ...loggerData, message: 'executed' });
 
       return data;
     } catch (error) {
-      Logger.error('error: CrawledUrlRepo -> find');
-      Logger.error(error, error.stack);
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
-      throw new InternalServerErrorException('something went wrong', {
-        cause: error,
-        description: error.message,
-      });
+      throw new InternalServer('something went wrong');
     }
   }
 
   public async delete(
     params: RootFilterQuery<CrawledUrl>,
   ): Promise<DeleteResult> {
+    const loggerData: ILoggerData = {
+      serviceName: 'CrawledUrlRepo',
+      function: 'delete',
+      message: 'executing',
+    };
+
     try {
-      Logger.log('executing: CrawledUrlRepo -> create');
+      this.loggerService.info(loggerData);
 
       const data = await this.crawledUrlModel.deleteMany(params);
 
-      Logger.log('executed: CrawledUrlRepo -> create');
+      this.loggerService.info({ ...loggerData, message: 'executed' });
 
       return data;
     } catch (error) {
-      Logger.error('error: CrawledUrlRepo -> create');
-      Logger.error(error, error.stack);
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
-      throw new InternalServerErrorException('something went wrong', {
-        cause: error,
-        description: error.message,
-      });
+      throw new InternalServer('something went wrong');
     }
   }
 
-  public async aggregation<T = any[]>(pipleine: any[], options?: AggregateOptions): Promise<T> {
+  public async aggregation<T = any[]>(
+    pipleine: any[],
+    options?: AggregateOptions,
+  ): Promise<T> {
+    const loggerData: ILoggerData = {
+      serviceName: 'CrawledUrlRepo',
+      function: 'aggregation',
+      message: 'executing',
+    };
+
     try {
-      Logger.log('executing: CrawledUrlRepo -> aggregation');
+      this.loggerService.info(loggerData);
 
       const data = await this.crawledUrlModel.aggregate(pipleine, options);
 
-      Logger.log('executed: CrawledUrlRepo -> aggregation');
+      this.loggerService.info({ ...loggerData, message: 'executed' });
 
       return data as T;
     } catch (error) {
-      Logger.error('error: CrawledUrlRepo -> aggregation');
-      Logger.error(error, error.stack);
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
-      throw new InternalServer('something went wrong with aggregation pipeline');
+      throw new InternalServer(
+        'something went wrong with aggregation pipeline',
+      );
     }
   }
 
   public async bulkWrite(params: AnyBulkWriteOperation<CrawledUrl>[]) {
+    const loggerData: ILoggerData = {
+      serviceName: 'CrawledUrlRepo',
+      function: 'bulkWrite',
+      message: 'executing',
+    };
+
     try {
-      Logger.log('executing: CrawledUrlRepo -> bulkWrite');
+      this.loggerService.info(loggerData);
 
       const data = await this.crawledUrlModel.bulkWrite(params);
 
-      Logger.log('executed: CrawledUrlRepo -> bulkWrite');
+      this.loggerService.info({ ...loggerData, message: 'executed' });
 
       return data;
     } catch (error) {
-      Logger.error('error: CrawledUrlRepo -> bulkWrite');
-      Logger.error(error, error.stack);
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
       throw new InternalServer('something went wrong');
     }

@@ -11,5 +11,5 @@ export interface AddDocumentOptions {
 }
 
 export interface BaseVectorStore {
-  getNamespace(namespaceId: string): Promise<PineconeNsService>;
+  getNamespace(namespaceId: string): PineconeNsService;
 }

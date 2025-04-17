@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   ExceptionFilter,
   Catch,
   ArgumentsHost,
   HttpException,
   HttpStatus,
-  Injectable,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import BaseError from './base.error';
@@ -48,6 +49,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
       if (typeof responseBody === 'object') {
         message = (responseBody as any).message || message;
+
         if (Array.isArray((responseBody as any).message)) {
           errors = (responseBody as any).message;
           message = 'Validation failed';

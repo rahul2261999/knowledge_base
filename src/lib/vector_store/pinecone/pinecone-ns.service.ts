@@ -1,12 +1,9 @@
-import { Document } from '@langchain/core/documents';
-import { LoggerService } from '@nestjs/common';
 import { Index, PineconeRecord } from '@pinecone-database/pinecone';
 import InternalServer from 'src/core/error/internal-server.error';
 import { AzureOpenaiEmbeddingsService } from 'src/lib/embeddings/azure-openai-embeddings/azure-openai-embeddings.service';
 import { LoggingService } from 'src/lib/logger/logger.service';
 import { ILoggerData } from 'src/lib/logger/logger.type';
 import { VectorDocument, VectorFilter } from './types/pinecone.type';
-import { text } from 'stream/consumers';
 import { unflattenObject } from 'src/utils/helper';
 
 export class PineconeNsService {

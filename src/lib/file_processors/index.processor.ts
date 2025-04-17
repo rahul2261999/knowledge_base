@@ -1,10 +1,9 @@
 import { Document } from '@langchain/core/documents';
-import { BaseFileProcessor, IStoreOpions } from './index.type';
+import { BaseFileProcessor } from './index.type';
 import { ILoggerData } from '../logger/logger.type';
 import { IBaseTextSplitter } from '../text_splitters/index.type';
 import RecursiveTextSplitter from '../text_splitters/recursive-text.splitter';
 import { LoggingService } from '../logger/logger.service';
-import { PineconeVectorStoreService } from '../vector_store/pinecone/pinecone-vector-store.service';
 import InternalServer from 'src/core/error/internal-server.error';
 
 abstract class AbstractFileProcessor implements BaseFileProcessor {

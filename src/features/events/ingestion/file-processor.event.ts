@@ -1,5 +1,5 @@
-import path = require('path');
-import EventEmitter = require('events');
+import * as path from 'path';
+import { EventEmitter } from 'events';
 import { LoggingService } from 'src/lib/logger/logger.service';
 import {
   FileExtensions,
@@ -90,7 +90,7 @@ export class FileProcessorEvents {
               return;
             }
 
-            const fileExtension = path.extname(document.name);
+            const fileExtension = path.extname(document.name) as FileExtensions;
 
             const s3Document =
               await this.awsS3Service.download.downloadSmallFile(
@@ -154,6 +154,7 @@ export class FileProcessorEvents {
             const documentToEmbedd = proccessedDocuments.map(
               (proccessedDocument, index) => {
                 const lines = flattenObject({
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                   lines: proccessedDocument.metadata.loc,
                 });
 
@@ -175,7 +176,7 @@ export class FileProcessorEvents {
             );
 
             const customerNamespace =
-              await this.pineconVectorStoreService.getNamespace(
+              this.pineconVectorStoreService.getNamespace(
                 params.knowledgebaseId,
               );
 

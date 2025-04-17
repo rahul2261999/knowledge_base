@@ -18,7 +18,6 @@ export class QueueReceiverService implements OnApplicationBootstrap {
     private readonly awsSqsService: AwsSqsService,
     private readonly configurationService: ConfigurationService,
     private readonly alsService: AlsService,
-    private readonly fileProcessorEvents: FileProcessorEvents,
   ) {}
 
   // This method will be called once the application is ready
@@ -30,7 +29,7 @@ export class QueueReceiverService implements OnApplicationBootstrap {
     });
 
     // Start the queue processing in the background
-    this.startQueueProcessing().catch((error) => {
+    await this.startQueueProcessing().catch((error) => {
       this.loggerService.error(
         {
           serviceName: 'QueueReceiverService',
@@ -90,7 +89,7 @@ export class QueueReceiverService implements OnApplicationBootstrap {
           if (response.Messages && response.Messages.length > 0) {
             // Process messages concurrently using Promise.all
             await Promise.all(
-              response.Messages.map(async (message) => {
+              response.Messages.map((message) => {
                 this.alsService.runContext(new Map(), async () => {
                   if (!message.Body) {
                     this.loggerService.error({
@@ -111,6 +110,7 @@ export class QueueReceiverService implements OnApplicationBootstrap {
                   }
 
                   try {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     const messageBody: IProcessIncomingFileAttrs = JSON.parse(
                       message.Body,
                     );

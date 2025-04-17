@@ -1,9 +1,9 @@
 import * as path from 'path';
 
 class FileHelper {
-  private file: any;
+  private file: Express.Multer.File;
 
-  constructor(file: any) {
+  constructor(file: Express.Multer.File) {
     this.file = file;
   }
 

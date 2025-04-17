@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Expose, Transform } from 'class-transformer';
 import { IsEnum } from 'class-validator';
 import { VectorDocumentSource } from 'src/core/constants/global.enum';
