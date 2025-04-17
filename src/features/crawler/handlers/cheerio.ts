@@ -180,9 +180,11 @@ class Cheerio {
 
       this.loggerService.info({ ...loggerData, message: 'executed' });
     } catch (error) {
-      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
-
-      throw error;
+      this.loggerService.error({
+        ...loggerData,
+        message: 'failed',
+        additionalArgs: { message: error.message },
+      });
     }
   }
 

@@ -342,9 +342,7 @@ export class CrawlerService {
     } catch (error) {
       this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
-      throw new InternalServer(
-        'Something went wrong while processing the queue',
-      );
+      throw new InternalServer('Something went wrong while crawlContent');
     }
   }
 

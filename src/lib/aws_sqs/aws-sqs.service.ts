@@ -1,5 +1,7 @@
 import {
   ChangeMessageVisibilityCommand,
+  DeleteMessageBatchCommand,
+  DeleteMessageBatchRequestEntry,
   DeleteMessageCommand,
   GetQueueUrlCommand,
   MessageAttributeValue,
@@ -266,6 +268,37 @@ export class AwsSqsService {
       await this.sqsClient.send(command);
 
       this.loggerService.info({ ...loggerData, message: 'executed' });
+    } catch (error) {
+      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
+      throw new InternalServer(
+        'Something went wrong while deleting message from queue',
+      );
+    }
+  }
+
+  public async deleteMessageBatch(
+    queueUrl: string,
+    entries: DeleteMessageBatchRequestEntry[],
+  ) {
+    const loggerData: ILoggerData = {
+      serviceName: 'AwsSqsService',
+      function: 'deleteMessageBatch',
+      message: 'executing',
+    };
+
+    try {
+      this.loggerService.info(loggerData);
+
+      const command = new DeleteMessageBatchCommand({
+        QueueUrl: queueUrl,
+        Entries: entries,
+      });
+
+      const res = await this.sqsClient.send(command);
+
+      this.loggerService.info({ ...loggerData, message: 'executed' });
+
+      return res;
     } catch (error) {
       this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
       throw new InternalServer(
