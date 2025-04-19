@@ -11,7 +11,7 @@ export class CrawlingSession {
     type: String,
     required: true,
   })
-  websiteId: String;
+  websiteId: string;
 
   @Prop({
     type: Number,

@@ -1,12 +1,9 @@
-import { Document } from '@langchain/core/documents';
-import { LoggerService } from '@nestjs/common';
 import { Index, PineconeRecord } from '@pinecone-database/pinecone';
 import InternalServer from 'src/core/error/internal-server.error';
 import { AzureOpenaiEmbeddingsService } from 'src/lib/embeddings/azure-openai-embeddings/azure-openai-embeddings.service';
 import { LoggingService } from 'src/lib/logger/logger.service';
 import { ILoggerData } from 'src/lib/logger/logger.type';
 import { VectorDocument, VectorFilter } from './types/pinecone.type';
-import { text } from 'stream/consumers';
 import { unflattenObject } from 'src/utils/helper';
 
 export class PineconeNsService {
@@ -33,14 +30,14 @@ export class PineconeNsService {
         message: 'adding documents to pinecone',
       });
 
-      const batch = documents.map(async (doc) => {
-        const embedding = await this.embeddingService.generateEmbeddings(
-          doc.text,
-        );
+      const texts: string[] = documents.map((doc) => doc.text);
+      const generatedEmbeddingBatch =
+        await this.embeddingService.generateEmbeddingsBatch(texts);
 
+      const batch = documents.map((doc, index) => {
         const data: PineconeRecord = {
           id: doc.id,
-          values: embedding,
+          values: generatedEmbeddingBatch[index],
           metadata: {
             text: doc.text,
             ...doc.metadata,
@@ -50,9 +47,7 @@ export class PineconeNsService {
         return data;
       });
 
-      const resolvedBatch = await Promise.all(batch);
-
-      await this.namespace.upsert(resolvedBatch);
+      await this.namespace.upsert(batch);
 
       this.loggerService.info({
         ...loggerData,

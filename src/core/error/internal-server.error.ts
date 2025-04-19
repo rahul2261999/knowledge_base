@@ -1,5 +1,4 @@
 import { HttpStatus } from '@nestjs/common';
-import constant from '../constants/constant';
 import BaseError from './base.error';
 
 class InternalServer extends BaseError {

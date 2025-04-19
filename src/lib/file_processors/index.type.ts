@@ -1,6 +1,5 @@
 import { Document } from '@langchain/core/documents';
 import { FileExtensions } from 'src/core/constants/global.enum';
-import { IBaseTextSplitter } from '../text_splitters/index.type';
 import { BaseVectorStore } from '../vector_store/base.interface';
 import { IPdfLoaderParams } from './pdf/pdf.type';
 

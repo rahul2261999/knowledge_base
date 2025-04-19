@@ -5,14 +5,22 @@ import { LoggingService } from 'src/lib/logger/logger.service';
 import { CreateWebsiteDto } from './dto/create-website.dto';
 import { KnowledgebasesService } from '../knowledgebases.service';
 import { Website } from './schema/website.schema';
-import { CrawlingSessionStatus, FileExtensions, ProcessingStatus, Status, VectorDocumentSource } from 'src/core/constants/global.enum';
+import {
+  CrawlingSessionStatus,
+  FileExtensions,
+  ProcessingStatus,
+  Status,
+  VectorDocumentSource,
+} from 'src/core/constants/global.enum';
 import mongoose from 'mongoose';
 import NotFound from 'src/core/error/not-found';
 import { UpdateWebsiteDto } from './dto/update-website.dto';
-import { CrawledUrlAggregationResult, SessionStatusStats } from './webiste.type';
+import {
+  CrawledUrlAggregationResult,
+  SessionStatusStats,
+} from './webiste.type';
 import { ProcessWebpage } from 'src/features/events/events.type';
 import FileProcessorBuilderFactory from 'src/lib/file_processors/file-processor-builder.factory';
-import { BaseFileProcessor } from 'src/lib/file_processors/index.type';
 import { VectorDocument } from 'src/lib/vector_store/pinecone/types/pinecone.type';
 import { CrawlerService } from 'src/features/crawler/crawler.service';
 import { AwsS3Service } from 'src/lib/aws_s3/aws-s3.service';
@@ -21,6 +29,7 @@ import mimetypes from 'mime-types';
 import { flattenObject } from 'src/utils/helper';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { DateTime } from 'luxon';
+import { ConfigurationService } from 'src/core/configuration/configuration.service';
 
 @Injectable()
 export class WebsiteService {
@@ -31,6 +40,7 @@ export class WebsiteService {
     private readonly crawlService: CrawlerService,
     private readonly awsS3Service: AwsS3Service,
     private readonly pineconeVectorStoreService: PineconeVectorStoreService,
+    private readonly configurationService: ConfigurationService,
   ) {}
 
   public async create(
@@ -133,7 +143,7 @@ export class WebsiteService {
     }
   }
 
-  public async update(id: string, updateDocumentDto: UpdateWebsiteDto) {
+  public async update(id: string, updatWebisteDto: UpdateWebsiteDto) {
     const loggerData: ILoggerData = {
       serviceName: 'WebsiteService',
       function: 'update',
@@ -145,10 +155,44 @@ export class WebsiteService {
 
       const website = await this.findOne(id);
 
+      const updateBody: Partial<Website> = {
+        url: updatWebisteDto.url,
+        depth: updatWebisteDto.depth,
+      };
+
       const updatedDocument = await this.websiteRepository.update(
-        website._id,
-        updateDocumentDto,
+        { _id: website._id },
+        updateBody,
       );
+
+      /* 
+        1. If url is different from exisiting delete existing indexes and restart the crawl
+        2. If forceRefresh is true delete existing indexes restart the crawl
+      */
+
+      if (updatWebisteDto.url !== website.url || updatWebisteDto.forceRefresh) {
+        const crawlingBukcet = this.configurationService.getS3Buckets();
+
+        await this.awsS3Service.deleteFolder(
+          crawlingBukcet.crawler,
+          `${website.knowledgebaseId}/`,
+        );
+
+        const indexNamespace = this.pineconeVectorStoreService.getNamespace(
+          website.knowledgebaseId,
+        );
+
+        await indexNamespace.deleteDocuments({
+          prefix: `${website._id.toString()}#`,
+        });
+
+        await this.crawlService.crawl({
+          websiteId: website._id.toString(),
+          url: updatWebisteDto.url,
+          depth: website.depth,
+          knowledgebaseId: website.knowledgebaseId,
+        });
+      }
 
       this.loggerService.info({
         ...loggerData,
@@ -244,14 +288,12 @@ export class WebsiteService {
         { type: mimetype || 'text/plain' },
       );
 
-      let fileProcessor: BaseFileProcessor;
-
       const fileProcessorBuilder = FileProcessorBuilderFactory.getFileBuilder(
         FileExtensions.txt,
         this.loggerService,
       );
 
-      fileProcessor = fileProcessorBuilder
+      const fileProcessor = fileProcessorBuilder
         .setFilepathOrBlob(filePathOrBlob)
         .build();
 
@@ -264,7 +306,7 @@ export class WebsiteService {
           });
 
           const data: VectorDocument = {
-            id: `${params.crawlUrlId}#chunk_${index + 1}`,
+            id: `${checkCrawlSession.websiteId}#url_${params.crawlUrlId}#chunk_${index + 1}`,
             text: proccessedDocument.pageContent,
             metadata: {
               knowledgebaseId: params.knowledgebaseId,
@@ -272,7 +314,7 @@ export class WebsiteService {
               crawlSessionId: params.crawlingSessionId,
               source: VectorDocumentSource.WEBSITE,
               url: params.url,
-              bucketName: params!.bucketName.toLowerCase(),
+              bucketName: params.bucketName.toLowerCase(),
               ...lines,
             },
           };
@@ -281,10 +323,9 @@ export class WebsiteService {
         },
       );
 
-      const customerNamespace =
-        await this.pineconeVectorStoreService.getNamespace(
-          params.knowledgebaseId,
-        );
+      const customerNamespace = this.pineconeVectorStoreService.getNamespace(
+        params.knowledgebaseId,
+      );
 
       await customerNamespace.addDocuments(documentToEmbedd);
 
@@ -299,7 +340,10 @@ export class WebsiteService {
     }
   }
 
-  @Cron(CronExpression.EVERY_10_MINUTES, { name: 'crawl_progress_monitor', waitForCompletion: true })
+  @Cron(CronExpression.EVERY_10_MINUTES, {
+    name: 'crawl_progress_monitor',
+    waitForCompletion: true,
+  })
   public async crawlProgressMonitor() {
     const loggerData: ILoggerData = {
       serviceName: 'WebsiteService',
@@ -312,7 +356,7 @@ export class WebsiteService {
 
       const crawlSessions = await this.crawlService.findCrawlingSessions({
         status: CrawlingSessionStatus.IN_PROGRESS,
-        createdAt: { $gt: DateTime.now().minus({ days: 7 }).toUTC() }
+        createdAt: { $gt: DateTime.now().minus({ days: 7 }).toUTC() },
       });
 
       if (!crawlSessions.length) {
@@ -329,50 +373,60 @@ export class WebsiteService {
 
       crawlSessions.forEach((session) => {
         sessionIds.push(session._id);
-        sessionIdAndWebisteIdMap.set(session._id.toString(), session.websiteId.toString());
+        sessionIdAndWebisteIdMap.set(
+          session._id.toString(),
+          session.websiteId.toString(),
+        );
       });
 
-      const crawledUrlStats = await this.crawlService.crawlUrlAggregation<CrawledUrlAggregationResult[]>([
+      const crawledUrlStats = await this.crawlService.crawlUrlAggregation<
+        CrawledUrlAggregationResult[]
+      >([
         {
           $match: {
-            crawlingSessionId: { $in: sessionIds }
-          }
+            crawlingSessionId: { $in: sessionIds },
+          },
         },
         {
           $group: {
             _id: {
-              sessionId: "$crawlingSessionId",
-              status: "$status"
+              sessionId: '$crawlingSessionId',
+              status: '$status',
             },
-            count: { $sum: 1 }
-          }
+            count: { $sum: 1 },
+          },
         },
         {
           $group: {
-            _id: "$_id.sessionId",
-            totalRecords: { $sum: "$count" },
+            _id: '$_id.sessionId',
+            totalRecords: { $sum: '$count' },
             statusCounts: {
               $push: {
-                status: "$_id.status",
-                count: "$count"
-              }
-            }
-          }
-        }
-      ])
+                status: '$_id.status',
+                count: '$count',
+              },
+            },
+          },
+        },
+      ]);
 
       const websiteCrawlingCompleted: mongoose.Types.ObjectId[] = [];
 
-      const sessionStats: SessionStatusStats[] = crawledUrlStats.map(stat => ({
-        sessionId: stat._id.toString(),
-        totalRecords: stat.totalRecords,
-        statusCounts: stat.statusCounts.reduce((acc, curr) => {
-          acc[curr.status] = curr.count;
-          return acc;
-        }, {} as SessionStatusStats['statusCounts'])
-      }));
+      const sessionStats: SessionStatusStats[] = crawledUrlStats.map(
+        (stat) => ({
+          sessionId: stat._id.toString(),
+          totalRecords: stat.totalRecords,
+          statusCounts: stat.statusCounts.reduce(
+            (acc, curr) => {
+              acc[curr.status] = curr.count;
+              return acc;
+            },
+            {} as SessionStatusStats['statusCounts'],
+          ),
+        }),
+      );
 
-      const bulkUpdateOperations = sessionStats.map(sessionStat => {
+      const bulkUpdateOperations = sessionStats.map((sessionStat) => {
         let totalCrawledUrls = 0;
 
         if (sessionStat.statusCounts.SUCCESS) {
@@ -381,14 +435,21 @@ export class WebsiteService {
 
         let sessionStatus: CrawlingSessionStatus;
 
-        if (sessionStat.statusCounts.PENDING && sessionStat.statusCounts.PENDING > 0) {
+        if (
+          sessionStat.statusCounts.PENDING &&
+          sessionStat.statusCounts.PENDING > 0
+        ) {
           sessionStatus = CrawlingSessionStatus.IN_PROGRESS;
         } else {
           sessionStatus = CrawlingSessionStatus.COMPLETED;
 
           if (sessionIdAndWebisteIdMap.has(sessionStat.sessionId)) {
-            const websiteId = sessionIdAndWebisteIdMap.get(sessionStat.sessionId)!
-            websiteCrawlingCompleted.push(new mongoose.Types.ObjectId(websiteId));
+            const websiteId = sessionIdAndWebisteIdMap.get(
+              sessionStat.sessionId,
+            )!;
+            websiteCrawlingCompleted.push(
+              new mongoose.Types.ObjectId(websiteId),
+            );
           }
         }
 
@@ -398,26 +459,41 @@ export class WebsiteService {
             update: {
               $set: {
                 urlsCrawled: totalCrawledUrls,
-                status: sessionStatus
-              }
-            }
-          }
-        }
+                status: sessionStatus,
+              },
+            },
+          },
+        };
       });
 
-      const bulkWriteResult = this.crawlService.crawlingSessionBulkWrite(bulkUpdateOperations);
-      const bulkUpdateWebsite = this.websiteRepository.update({
-        _id: { $in: websiteCrawlingCompleted }
-      }, {
-        processingStatus: ProcessingStatus.COMPLETED,
-      })
+      const bulkWriteResult =
+        this.crawlService.crawlingSessionBulkWrite(bulkUpdateOperations);
+      const bulkUpdateWebsite = this.websiteRepository.update(
+        {
+          _id: { $in: websiteCrawlingCompleted },
+        },
+        {
+          processingStatus: ProcessingStatus.COMPLETED,
+        },
+      );
 
-      const resolvedPromises = await Promise.all([bulkWriteResult, bulkUpdateWebsite]);
+      const resolvedPromises = await Promise.all([
+        bulkWriteResult,
+        bulkUpdateWebsite,
+      ]);
 
       const [bulkWriteResponse, updateWebsiteResult] = resolvedPromises;
 
-      this.loggerService.notice({ ...loggerData, message: "Bulk write response", additionalArgs: { bulkWriteResponse } });
-      this.loggerService.notice({ ...loggerData, message: "Update website response", additionalArgs: { updateWebsiteResult } });
+      this.loggerService.notice({
+        ...loggerData,
+        message: 'Bulk write response',
+        additionalArgs: { bulkWriteResponse },
+      });
+      this.loggerService.notice({
+        ...loggerData,
+        message: 'Update website response',
+        additionalArgs: { updateWebsiteResult },
+      });
 
       this.loggerService.info({
         ...loggerData,

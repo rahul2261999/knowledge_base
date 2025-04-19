@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import EventEmitter = require('events');
+import { EventEmitter } from 'events';
 import { CustomEventEmitter } from 'src/core/common/emitter';
 
 import { IProcessIncomingFileAttrs, ProcessWebpage } from '../events.type';

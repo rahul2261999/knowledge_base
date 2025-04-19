@@ -194,7 +194,7 @@ export class AwsS3DownloadService {
    * Clean up temporary files after processing
    * @param filePath Path to the temporary file
    */
-  public async cleanupTempFile(filePath: string): Promise<void> {
+  public cleanupTempFile(filePath: string): void {
     try {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);

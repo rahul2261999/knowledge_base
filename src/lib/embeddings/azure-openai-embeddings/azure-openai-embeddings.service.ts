@@ -58,4 +58,35 @@ export class AzureOpenaiEmbeddingsService {
       throw new InternalServer('Error generating embeddings');
     }
   }
+
+  public async generateEmbeddingsBatch(texts: string[]) {
+    const loggerData: ILoggerData = {
+      serviceName: 'AzureOpenaiEmbeddingsService',
+      function: 'generateEmbeddings',
+      message: 'executing',
+    };
+
+    try {
+      this.loggerService.info(loggerData);
+
+      const embedding = await this.model.embedDocuments(texts);
+
+      this.loggerService.info({
+        ...loggerData,
+        message: 'embeddings generated',
+      });
+
+      return embedding;
+    } catch (error) {
+      this.loggerService.error(
+        {
+          ...loggerData,
+          message: 'failed to generate embeddings',
+        },
+        { error: error as Error },
+      );
+
+      throw new InternalServer('Error generating embeddings');
+    }
+  }
 }

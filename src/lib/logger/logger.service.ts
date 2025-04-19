@@ -21,17 +21,21 @@ export class LoggingService implements ILoggerServiceMethods {
   ) {}
 
   private formatter(data: ILoggerData): string {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const orderAttribute = sortBy(
       Object.keys(data),
-      (key) => this.loggerDataOrder[key as keyof typeof this.loggerDataOrder],
-    );
+      (key: string) =>
+        this.loggerDataOrder[key as keyof typeof this.loggerDataOrder],
+    ) as Array<keyof ILoggerData>;
 
     const finalMessage = orderAttribute.map((key) => {
-      const value = data[key as keyof ILoggerData];
+      const value: unknown = data[key];
+
       if (value instanceof Object) {
         return `${key}: ${JSON.stringify(value, null, 2)}`;
       }
-      return `${key}: ${value}`;
+
+      return `${key}: ${value?.toString()}`;
     });
 
     return finalMessage.join(' ---> ');
@@ -43,12 +47,14 @@ export class LoggingService implements ILoggerServiceMethods {
 
   public info(message: ILoggerData | string): void {
     const tracingId = this.getTracingId();
-    let formmatedMessage: string = tracingId ? `tracingId: ${this.getTracingId()} --> `: '';
+    let formmatedMessage: string = tracingId
+      ? `tracingId: ${this.getTracingId()} --> `
+      : '';
 
     if (typeof message !== 'string') {
       formmatedMessage += this.formatter(message);
     } else {
-      formmatedMessage += message
+      formmatedMessage += message;
     }
 
     this.loggerClient.info(formmatedMessage);
@@ -56,12 +62,14 @@ export class LoggingService implements ILoggerServiceMethods {
 
   public notice(message: ILoggerData | string): void {
     const tracingId = this.getTracingId();
-    let formmatedMessage: string = tracingId ? `tracingId: ${this.getTracingId()} --> `: '';
+    let formmatedMessage: string = tracingId
+      ? `tracingId: ${this.getTracingId()} --> `
+      : '';
 
     if (typeof message !== 'string') {
       formmatedMessage += this.formatter(message);
     } else {
-      formmatedMessage += message
+      formmatedMessage += message;
     }
 
     this.loggerClient.notice(formmatedMessage);
@@ -69,57 +77,73 @@ export class LoggingService implements ILoggerServiceMethods {
 
   public debug(message: ILoggerData | string): void {
     const tracingId = this.getTracingId();
-    let formmatedMessage: string = tracingId ? `tracingId: ${this.getTracingId()} --> `: '';
+    let formmatedMessage: string = tracingId
+      ? `tracingId: ${this.getTracingId()} --> `
+      : '';
 
     if (typeof message !== 'string') {
       formmatedMessage += this.formatter(message);
     } else {
-      formmatedMessage += message
+      formmatedMessage += message;
     }
 
     this.loggerClient.debug(formmatedMessage);
   }
 
-  public warn(message: ILoggerData | string | null, option?: { error?: any; }): void {
+  public warn(
+    message: ILoggerData | string | null,
+    option?: { error?: any },
+  ): void {
     const tracingId = this.getTracingId();
-    let formmatedMessage: string = tracingId ? `tracingId: ${this.getTracingId()} --> `: '';
-
+    let formmatedMessage: string = tracingId
+      ? `tracingId: ${this.getTracingId()} --> `
+      : '';
 
     if (message !== null) {
       if (typeof message !== 'string') {
         formmatedMessage += this.formatter(message);
       } else {
-        formmatedMessage += message
+        formmatedMessage += message;
       }
     }
 
     this.loggerClient.warn(formmatedMessage, option?.error);
   }
 
-  public error(message: ILoggerData | string | null, option?: { error?: any; }): void {
+  public error(
+    message: ILoggerData | string | null,
+    option?: { error?: any },
+  ): void {
     const tracingId = this.getTracingId();
-    let formmatedMessage: string = tracingId ? `tracingId: ${this.getTracingId()} --> `: '';
+    let formmatedMessage: string = tracingId
+      ? `tracingId: ${this.getTracingId()} --> `
+      : '';
 
     if (message !== null) {
       if (typeof message !== 'string') {
         formmatedMessage += this.formatter(message);
       } else {
-        formmatedMessage = message
+        formmatedMessage = message;
       }
     }
 
     this.loggerClient.error(formmatedMessage, option?.error);
   }
 
-  public alert(message: ILoggerData | string | null, option?: { error?: any; }): void {
+  public alert(
+    message: ILoggerData | string | null,
+    option?: { error?: any },
+  ): void {
     const tracingId = this.getTracingId();
-    let formmatedMessage: string = tracingId ? `tracingId: ${this.getTracingId()} --> `: '';
+    let formmatedMessage: string = tracingId
+      ? `tracingId: ${this.getTracingId()} --> `
+      : '';
 
     if (message !== null) {
       if (typeof message !== 'string') {
         formmatedMessage += this.formatter(message);
       } else {
-        formmatedMessage = message
+        formmatedMessage = message;
       }
     }
 

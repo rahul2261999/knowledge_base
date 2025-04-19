@@ -180,9 +180,11 @@ class Cheerio {
 
       this.loggerService.info({ ...loggerData, message: 'executed' });
     } catch (error) {
-      this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
-
-      throw error;
+      this.loggerService.error({
+        ...loggerData,
+        message: 'failed',
+        additionalArgs: { message: error.message },
+      });
     }
   }
 
@@ -262,7 +264,7 @@ class Cheerio {
       const texts = selectors.map((selector) => {
         try {
           return $(selector).text() || '';
-        } catch (err) {
+        } catch (error) {
           this.loggerService.warn({
             ...loggerData,
             message: `Failed to extract content from selector: ${selector}`,
@@ -272,7 +274,7 @@ class Cheerio {
       });
 
       // Combine and clean the text
-      let text = texts
+      const text = texts
         .join('\n')
         .replace(/\n\s*\n/g, '\n') // Replace multiple newlines with single newline
         .replace(/[\t\f\r ]+/g, ' ') // Replace multiple horizontal whitespace with single space

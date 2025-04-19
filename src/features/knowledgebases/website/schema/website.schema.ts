@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 import { ProcessingStatus, Status } from 'src/core/constants/global.enum';
 import { BaseSchema } from 'src/core/schema/base.schema';
 

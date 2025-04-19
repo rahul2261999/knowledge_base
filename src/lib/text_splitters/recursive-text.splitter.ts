@@ -1,9 +1,6 @@
 import { Document } from '@langchain/core/documents';
 import { IBaseTextSplitter, IRecursiveTextSplitterParams } from './index.type';
-import {
-  RecursiveCharacterTextSplitter,
-  RecursiveCharacterTextSplitterParams,
-} from '@langchain/textsplitters';
+import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 
 class RecursiveTextSplitter implements IBaseTextSplitter {
   private splitter: RecursiveCharacterTextSplitter;
@@ -13,13 +10,7 @@ class RecursiveTextSplitter implements IBaseTextSplitter {
   }
 
   public async splitDocuments(documents: Document[]): Promise<Document[]> {
-    try {
-      const data = await this.splitter.splitDocuments(documents);
-
-      return data;
-    } catch (error) {
-      throw error;
-    }
+    return await this.splitter.splitDocuments(documents);
   }
 }
 

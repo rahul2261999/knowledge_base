@@ -3,7 +3,11 @@ import { CrawlDto } from './dto/crawler.dto';
 import { Crawling, ExtractedUrl } from './crawler.interface';
 import { Cheerio } from './handlers/cheerio';
 import { Sitemap } from 'src/lib/sitemap/sitemap.util';
-import mongoose, { AggregateOptions, AnyBulkWriteOperation, FilterQuery } from 'mongoose';
+import mongoose, {
+  AggregateOptions,
+  AnyBulkWriteOperation,
+  FilterQuery,
+} from 'mongoose';
 import { CrawlingSessionRepo } from './repo/crawling-session.repo';
 import { CrawledUrl } from './schemas/crawled-url.model';
 import { CrawledUrlRepo } from './repo/crawled-url.repo';
@@ -38,7 +42,7 @@ export class CrawlerService {
     private loggerService: LoggingService,
     private awsS3Service: AwsS3Service,
     private alSService: AlsService,
-  ) { }
+  ) {}
 
   async getCrawlingSession(
     crawlSession: FilterQuery<CrawlingSession>,
@@ -99,7 +103,7 @@ export class CrawlerService {
         status: CrawlingSessionStatus.IN_PROGRESS,
       });
 
-      this.determineCrawlingStrategy({
+      void this.determineCrawlingStrategy({
         crawlingSessionId: createCrawlingSession._id.toString(),
         ...params,
       });
@@ -124,7 +128,7 @@ export class CrawlerService {
       this.loggerService.info(loggerData);
 
       const mainUrl = new URL(params.url);
-      const sitemap = await Sitemap.fromUrl(mainUrl);
+      const sitemap = await Sitemap.fromUrl(mainUrl, this.loggerService);
 
       let data: { totalUrls: number };
 
@@ -320,7 +324,7 @@ export class CrawlerService {
 
       const { crawler } = this.configurationService.getS3Buckets();
 
-      const key = `${params.crawlingSessionId}/${params.crawlingUrlId}.txt`;
+      const key = `${params.knowledgebaseId}/${params.crawlingSessionId}/${params.crawlingUrlId}.txt`;
 
       await this.awsS3Service.uploadTextToS3(crawler, key, extractedText);
 
@@ -338,14 +342,14 @@ export class CrawlerService {
     } catch (error) {
       this.loggerService.error({ ...loggerData, message: 'failed' }, { error });
 
-      throw new InternalServer(
-        'Something went wrong while processing the queue',
-      );
+      throw new InternalServer('Something went wrong while crawlContent');
     }
   }
 
   /* Crawling Session CRUD Methods */
-  async createCrawlingSession(data: CrawlingSession): Promise<CrawlingSessionDocument> {
+  async createCrawlingSession(
+    data: CrawlingSession,
+  ): Promise<CrawlingSessionDocument> {
     const loggerData: ILoggerData = {
       serviceName: 'CrawlerService',
       function: 'createCrawlingSession',
@@ -383,7 +387,9 @@ export class CrawlerService {
     }
   }
 
-  async deleteCrawlingSession(filter: FilterQuery<CrawlingSession>): Promise<boolean> {
+  async deleteCrawlingSession(
+    filter: FilterQuery<CrawlingSession>,
+  ): Promise<boolean> {
     const loggerData: ILoggerData = {
       serviceName: 'CrawlerService',
       function: 'deleteCrawlingSession',
@@ -401,7 +407,9 @@ export class CrawlerService {
     }
   }
 
-  async findCrawlingSessions(filter: FilterQuery<CrawlingSession>): Promise<CrawlingSessionDocument[]> {
+  async findCrawlingSessions(
+    filter: FilterQuery<CrawlingSession>,
+  ): Promise<CrawlingSessionDocument[]> {
     const loggerData: ILoggerData = {
       serviceName: 'CrawlerService',
       function: 'findCrawlingSessions',
@@ -476,7 +484,9 @@ export class CrawlerService {
     }
   }
 
-  async findCrawledUrls(filter: FilterQuery<CrawledUrl>): Promise<CrawledUrl[]> {
+  async findCrawledUrls(
+    filter: FilterQuery<CrawledUrl>,
+  ): Promise<CrawledUrl[]> {
     const loggerData: ILoggerData = {
       serviceName: 'CrawlerService',
       function: 'findCrawledUrls',
@@ -496,7 +506,7 @@ export class CrawlerService {
 
   async crawlUrlAggregation<T>(
     pipleine: any[],
-    options?: AggregateOptions
+    options?: AggregateOptions,
   ): Promise<T> {
     const loggerData: ILoggerData = {
       serviceName: 'CrawlerService',
@@ -507,7 +517,10 @@ export class CrawlerService {
     try {
       this.loggerService.info(loggerData);
 
-      const aggregation = await this.crawledUrlRepo.aggregation(pipleine, options);
+      const aggregation = await this.crawledUrlRepo.aggregation(
+        pipleine,
+        options,
+      );
 
       this.loggerService.info({ ...loggerData, message: 'executed' });
 
@@ -542,8 +555,4 @@ export class CrawlerService {
       throw error;
     }
   }
-
-
-
-
 }

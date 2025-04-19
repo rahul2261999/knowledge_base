@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  LoggerService,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -36,8 +32,10 @@ export class ConfigurationService {
   }
 
   getS3Creds() {
-    const accessKey = this.configService.get('AWS_ACCESS_KEY_ID');
-    const secretAccessKey = this.configService.get('AWS_SECRET_ACCESS_KEY');
+    const accessKey: string = this.configService.get('AWS_ACCESS_KEY_ID')!;
+    const secretAccessKey: string = this.configService.get(
+      'AWS_SECRET_ACCESS_KEY',
+    )!;
 
     return { accessKey, secretAccessKey };
   }

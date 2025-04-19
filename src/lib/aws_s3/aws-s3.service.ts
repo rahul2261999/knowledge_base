@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -109,7 +110,6 @@ export class AwsS3Service {
     }
   }
 
-
   public async getFileUrl(bucketname: string, key: string) {
     const logData: ILoggerData = {
       serviceName: 'AwsS3Service',
@@ -169,6 +169,58 @@ export class AwsS3Service {
       this.loggerService.error(logData, { error: error as Error });
 
       throw new InternalServer('Failed to delete from S3');
+    }
+  }
+
+  public async deleteFolder(bucketname: string, prefix: string) {
+    const logData: ILoggerData = {
+      serviceName: 'AwsS3Service',
+      function: 'deleteFolder',
+      message: `Deleting all objects under prefix: ${prefix}`,
+    };
+
+    try {
+      this.loggerService.info(logData);
+
+      let continuationToken: string | undefined;
+
+      do {
+        // List all objects under the prefix
+        const listCommand = new ListObjectsV2Command({
+          Bucket: bucketname,
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+        });
+
+        const listResponse = await this.s3Client.send(listCommand);
+
+        if (!listResponse.Contents || listResponse.Contents.length === 0) {
+          break;
+        }
+
+        // Delete each object
+        for (const object of listResponse.Contents) {
+          if (object.Key) {
+            const deleteCommand = new DeleteObjectCommand({
+              Bucket: bucketname,
+              Key: object.Key,
+            });
+            await this.s3Client.send(deleteCommand);
+          }
+        }
+
+        continuationToken = listResponse.NextContinuationToken;
+      } while (continuationToken);
+
+      this.loggerService.info({
+        ...logData,
+        message: `Successfully deleted all objects under prefix: ${prefix}`,
+      });
+
+      return;
+    } catch (error) {
+      this.loggerService.error(logData, { error: error as Error });
+      throw new InternalServer('Failed to delete folder from S3');
     }
   }
 }

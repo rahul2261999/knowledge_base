@@ -30,6 +30,7 @@ import yaml from 'js-yaml';
             yamlConfig = {};
           }
 
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           return {
             ...yamlConfig,
             ...process.env,
