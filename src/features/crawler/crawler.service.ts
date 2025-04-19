@@ -324,7 +324,7 @@ export class CrawlerService {
 
       const { crawler } = this.configurationService.getS3Buckets();
 
-      const key = `${params.crawlingSessionId}/${params.crawlingUrlId}.txt`;
+      const key = `${params.knowledgebaseId}/${params.crawlingSessionId}/${params.crawlingUrlId}.txt`;
 
       await this.awsS3Service.uploadTextToS3(crawler, key, extractedText);
 

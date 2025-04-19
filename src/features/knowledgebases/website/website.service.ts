@@ -21,7 +21,6 @@ import {
 } from './webiste.type';
 import { ProcessWebpage } from 'src/features/events/events.type';
 import FileProcessorBuilderFactory from 'src/lib/file_processors/file-processor-builder.factory';
-import { BaseFileProcessor } from 'src/lib/file_processors/index.type';
 import { VectorDocument } from 'src/lib/vector_store/pinecone/types/pinecone.type';
 import { CrawlerService } from 'src/features/crawler/crawler.service';
 import { AwsS3Service } from 'src/lib/aws_s3/aws-s3.service';
@@ -30,6 +29,7 @@ import mimetypes from 'mime-types';
 import { flattenObject } from 'src/utils/helper';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { DateTime } from 'luxon';
+import { ConfigurationService } from 'src/core/configuration/configuration.service';
 
 @Injectable()
 export class WebsiteService {
@@ -40,6 +40,7 @@ export class WebsiteService {
     private readonly crawlService: CrawlerService,
     private readonly awsS3Service: AwsS3Service,
     private readonly pineconeVectorStoreService: PineconeVectorStoreService,
+    private readonly configurationService: ConfigurationService,
   ) {}
 
   public async create(
@@ -142,7 +143,7 @@ export class WebsiteService {
     }
   }
 
-  public async update(id: string, updateDocumentDto: UpdateWebsiteDto) {
+  public async update(id: string, updatWebisteDto: UpdateWebsiteDto) {
     const loggerData: ILoggerData = {
       serviceName: 'WebsiteService',
       function: 'update',
@@ -154,10 +155,44 @@ export class WebsiteService {
 
       const website = await this.findOne(id);
 
+      const updateBody: Partial<Website> = {
+        url: updatWebisteDto.url,
+        depth: updatWebisteDto.depth,
+      };
+
       const updatedDocument = await this.websiteRepository.update(
-        website._id,
-        updateDocumentDto,
+        { _id: website._id },
+        updateBody,
       );
+
+      /* 
+        1. If url is different from exisiting delete existing indexes and restart the crawl
+        2. If forceRefresh is true delete existing indexes restart the crawl
+      */
+
+      if (updatWebisteDto.url !== website.url || updatWebisteDto.forceRefresh) {
+        const crawlingBukcet = this.configurationService.getS3Buckets();
+
+        await this.awsS3Service.deleteFolder(
+          crawlingBukcet.crawler,
+          `${website.knowledgebaseId}/`,
+        );
+
+        const indexNamespace = this.pineconeVectorStoreService.getNamespace(
+          website.knowledgebaseId,
+        );
+
+        await indexNamespace.deleteDocuments({
+          prefix: `${website._id.toString()}#`,
+        });
+
+        await this.crawlService.crawl({
+          websiteId: website._id.toString(),
+          url: updatWebisteDto.url,
+          depth: website.depth,
+          knowledgebaseId: website.knowledgebaseId,
+        });
+      }
 
       this.loggerService.info({
         ...loggerData,
@@ -271,7 +306,7 @@ export class WebsiteService {
           });
 
           const data: VectorDocument = {
-            id: `${params.crawlUrlId}#chunk_${index + 1}`,
+            id: `${checkCrawlSession.websiteId}#url_${params.crawlUrlId}#chunk_${index + 1}`,
             text: proccessedDocument.pageContent,
             metadata: {
               knowledgebaseId: params.knowledgebaseId,
