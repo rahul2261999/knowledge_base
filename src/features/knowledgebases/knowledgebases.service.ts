@@ -7,7 +7,7 @@ import NotFound from 'src/core/error/not-found';
 import { QueryDto } from './dto/query.dto';
 import { PineconeVectorStoreService } from 'src/lib/vector_store/pinecone/pinecone-vector-store.service';
 import { FetchedVectorDocument } from 'src/lib/vector_store/pinecone/types/pinecone.type';
-import { DeleteResult } from 'mongoose';
+import mongoose, { DeleteResult } from 'mongoose';
 import { Status } from 'src/core/constants/global.enum';
 import { Knowledgebase } from './schema/knowledgebase.schema';
 
@@ -83,7 +83,7 @@ export class KnowledgebasesService {
       this.loggerService.info(loggerData);
 
       const knowledgebases = await this.knowledgebaseRepo.findOne({
-        knowledgebaseId,
+        _id: new mongoose.Types.ObjectId(knowledgebaseId),
       });
 
       if (!knowledgebases) {
@@ -126,7 +126,7 @@ export class KnowledgebasesService {
     }
   }
 
-  public async query(knowledgebaseId: string, query: QueryDto) {
+  public async embeddings(knowledgebaseId: string, query: QueryDto) {
     const loggerData: ILoggerData = {
       serviceName: 'KnowledgebasesService',
       function: 'query',

@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { KnowledgebasesService } from './knowledgebases.service';
 import { CreateKnowledgebaseDto } from './dto/create-knowledgebase.dto';
 import { KnowledgebaseResDto } from './dto/knowledgebase-res.dto';
@@ -14,12 +6,11 @@ import { plainToInstance } from 'class-transformer';
 import SuccessResponse from 'src/core/response/response.util';
 import { QueryDto } from './dto/query.dto';
 import { QueryResponseDto } from './dto/query-response.dto';
-import BadRequest from 'src/core/error/bad-request';
 import { BaseParamsDto } from './dto/base-params.dto';
 import { FindKnowledgebaseDto } from './dto/find-knowledgebase.dto';
 
 @Controller({
-  path: 'knowledgebases',
+  path: ':tenantId/knowledgebases',
   version: '1',
 })
 export class KnowledgebasesController {
@@ -81,12 +72,12 @@ export class KnowledgebasesController {
     return new SuccessResponse('Knowledgebase deleted successfully');
   }
 
-  @Post(':knowledgebaseId/query')
+  @Post(':knowledgebaseId/embeddings')
   public async query(
     @Param('knowledgebaseId') knowledgebaseId: string,
     @Body() queryDto: QueryDto,
   ) {
-    const data = await this.knowledgebasesService.query(
+    const data = await this.knowledgebasesService.embeddings(
       knowledgebaseId,
       queryDto,
     );
