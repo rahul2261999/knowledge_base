@@ -56,6 +56,9 @@ import yaml from 'js-yaml';
         AZURE_OPENAI_API_EMBEDDINGS_DEPLOYMENT_NAME: Joi.string().required(),
         AZURE_OPENAI_API_VERSION: Joi.string().required(),
 
+        VOYAGE_API_KEY: Joi.string().required(),
+        VOYAGE_MODEL: Joi.string().required(),
+
         // =============== yaml config =============== //
         AwsS3: Joi.object({
           buckets: Joi.object({

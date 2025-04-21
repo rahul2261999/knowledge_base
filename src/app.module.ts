@@ -14,6 +14,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TracingInterceptor } from './core/common/tracing.interceptor';
 import { ScheduleModule } from '@nestjs/schedule';
 import { NextFunction, Request } from 'express';
+import { EmbeddingsModule } from './lib/embeddings/embeddings.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { NextFunction, Request } from 'express';
     FileProcessorModule,
     AlsModule,
     ScheduleModule.forRoot(),
+    EmbeddingsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -4,10 +4,18 @@ import { ConfigurationService } from 'src/core/configuration/configuration.servi
 import InternalServer from 'src/core/error/internal-server.error';
 import { LoggingService } from 'src/lib/logger/logger.service';
 import { ILoggerData } from 'src/lib/logger/logger.type';
+import { BaseEmbeddingMethods } from '../index.type';
+import {
+  AzureOpenAIEmbeddingOptions,
+  AzureOpenAIModel,
+} from './azure-openai.type';
 
 @Injectable()
-export class AzureOpenaiEmbeddingsService {
+export class AzureOpenaiEmbeddingsService
+  implements BaseEmbeddingMethods<AzureOpenAIModel, AzureOpenAIEmbeddingOptions>
+{
   private model: AzureOpenAIEmbeddings;
+  private modelConfig: AzureOpenAIModel;
 
   constructor(
     private readonly configurationService: ConfigurationService,
@@ -15,20 +23,33 @@ export class AzureOpenaiEmbeddingsService {
   ) {
     const azureOpenAiCreds = this.configurationService.getAzureOpenAiCreds();
 
-    this.model = new AzureOpenAIEmbeddings({
+    this.modelConfig = {
+      apiKey: azureOpenAiCreds.apiKey,
+      model: azureOpenAiCreds.apiEmbeddingsDeploymentName,
       azureOpenAIApiKey: azureOpenAiCreds.apiKey,
       azureOpenAIApiInstanceName: azureOpenAiCreds.apiInstanceName,
       azureOpenAIApiEmbeddingsDeploymentName:
         azureOpenAiCreds.apiEmbeddingsDeploymentName,
       azureOpenAIApiVersion: azureOpenAiCreds.apiVersion,
+    };
+
+    this.model = new AzureOpenAIEmbeddings({
+      azureOpenAIApiKey: this.modelConfig.azureOpenAIApiKey,
+      azureOpenAIApiInstanceName: this.modelConfig.azureOpenAIApiInstanceName,
+      azureOpenAIApiEmbeddingsDeploymentName:
+        this.modelConfig.azureOpenAIApiEmbeddingsDeploymentName,
+      azureOpenAIApiVersion: this.modelConfig.azureOpenAIApiVersion,
     });
   }
 
   public getEmbeddingModel() {
-    return this.model;
+    return this.modelConfig;
   }
 
-  public async generateEmbeddings(text: string) {
+  public async generateEmbeddings(
+    text: string,
+    _options?: AzureOpenAIEmbeddingOptions,
+  ) {
     const loggerData: ILoggerData = {
       serviceName: 'AzureOpenaiEmbeddingsService',
       function: 'generateEmbeddings',
@@ -59,10 +80,13 @@ export class AzureOpenaiEmbeddingsService {
     }
   }
 
-  public async generateEmbeddingsBatch(texts: string[]) {
+  public async generateEmbeddingsBatch(
+    texts: string[],
+    _options?: AzureOpenAIEmbeddingOptions,
+  ) {
     const loggerData: ILoggerData = {
       serviceName: 'AzureOpenaiEmbeddingsService',
-      function: 'generateEmbeddings',
+      function: 'generateEmbeddingsBatch',
       message: 'executing',
     };
 

@@ -70,4 +70,11 @@ export class ConfigurationService {
 
     return queues;
   }
+
+  getVoyageCreds() {
+    const apiKey = this.configService.get<string>('VOYAGE_API_KEY')!;
+    const model = this.configService.get<string>('VOYAGE_MODEL')!;
+
+    return { apiKey, model };
+  }
 }
