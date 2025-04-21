@@ -26,7 +26,7 @@ import { EFileProcessorEvents } from 'src/lib/file_processors/index.type';
 import { ulid } from 'ulid';
 
 @Controller({
-  path: 'knowledgebases/:knowledgebaseId/document',
+  path: ':tenantId/knowledgebases/:knowledgebaseId/document',
   version: '1',
 })
 export class DocumentController {
