@@ -19,18 +19,18 @@ import {
   CrawledUrlStatus,
   CrawlingSessionStatus,
 } from 'src/core/constants/global.enum';
-import { AwsSqsService } from 'src/lib/aws_sqs/aws-sqs.service';
+import { AwsSqsService } from 'src/lib/aws/aws_sqs/aws-sqs.service';
 import { ConfigurationService } from 'src/core/configuration/configuration.service';
 import {
   CrawlContentQueueMessage,
   CrawlContentQueuePayload,
-} from 'src/lib/aws_sqs/aws-sqs-interface';
+} from 'src/lib/aws/aws_sqs/aws-sqs-interface';
 import { ILoggerData } from 'src/lib/logger/logger.type';
 import { LoggingService } from 'src/lib/logger/logger.service';
 import InternalServer from 'src/core/error/internal-server.error';
-import { AwsS3Service } from 'src/lib/aws_s3/aws-s3.service';
 import { AlsService } from 'src/core/common/als/als.service';
 import { ulid } from 'ulid';
+import { AwsS3Service } from 'src/lib/aws/aws_s3/aws-s3.service';
 
 @Injectable()
 export class CrawlerService {
@@ -234,7 +234,8 @@ export class CrawlerService {
       const bulkCreatedCrawleddUrl =
         await this.crawledUrlRepo.bulkCreate(bulkCreateCrawledUrl);
 
-      const { CrawlContentQueue } = this.configurationService.getQueueNames();
+      const { CrawlContentQueue } =
+        this.configurationService.getAwsQueueNames();
 
       const tracingId = this.alSService.getTraceId() || ulid();
 
@@ -322,7 +323,7 @@ export class CrawlerService {
 
       const extractedText: string = await cheerioClient.extractContent();
 
-      const { crawler } = this.configurationService.getS3Buckets();
+      const { crawler } = this.configurationService.getAwsS3Buckets();
 
       const key = `${params.knowledgebaseId}/${params.crawlingSessionId}/${params.crawlingUrlId}.txt`;
 

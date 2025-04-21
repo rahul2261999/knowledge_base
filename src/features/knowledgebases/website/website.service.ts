@@ -23,13 +23,13 @@ import { ProcessWebpage } from 'src/features/events/events.type';
 import FileProcessorBuilderFactory from 'src/lib/file_processors/file-processor-builder.factory';
 import { VectorDocument } from 'src/lib/vector_store/pinecone/types/pinecone.type';
 import { CrawlerService } from 'src/features/crawler/crawler.service';
-import { AwsS3Service } from 'src/lib/aws_s3/aws-s3.service';
 import { PineconeVectorStoreService } from 'src/lib/vector_store/pinecone/pinecone-vector-store.service';
 import mimetypes from 'mime-types';
 import { flattenObject } from 'src/utils/helper';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { DateTime } from 'luxon';
 import { ConfigurationService } from 'src/core/configuration/configuration.service';
+import { AwsS3Service } from 'src/lib/aws/aws_s3/aws-s3.service';
 
 @Injectable()
 export class WebsiteService {
@@ -38,7 +38,7 @@ export class WebsiteService {
     private readonly websiteRepository: WebsiteRepo,
     private readonly knowledgeService: KnowledgebasesService,
     private readonly crawlService: CrawlerService,
-    private readonly awsS3Service: AwsS3Service,
+    private readonly s3Service: AwsS3Service,
     private readonly pineconeVectorStoreService: PineconeVectorStoreService,
     private readonly configurationService: ConfigurationService,
   ) {}
@@ -75,6 +75,15 @@ export class WebsiteService {
       this.loggerService.info({
         ...loggerData,
         message: 'execution completed',
+      });
+
+      const parsedWebsite = createdWebsite.toJSON();
+
+      await this.crawlService.crawl({
+        websiteId: parsedWebsite._id.toString(),
+        url: parsedWebsite.url,
+        depth: parsedWebsite.depth,
+        knowledgebaseId,
       });
 
       return createdWebsite.toJSON();
@@ -171,9 +180,9 @@ export class WebsiteService {
       */
 
       if (updatWebisteDto.url !== website.url || updatWebisteDto.forceRefresh) {
-        const crawlingBukcet = this.configurationService.getS3Buckets();
+        const crawlingBukcet = this.configurationService.getAwsS3Buckets();
 
-        await this.awsS3Service.deleteFolder(
+        await this.s3Service.deleteFolder(
           crawlingBukcet.crawler,
           `${website.knowledgebaseId}/`,
         );
@@ -256,7 +265,7 @@ export class WebsiteService {
         throw new NotFound('Crawling session not found or inactive');
       }
 
-      const fileExist = await this.awsS3Service.download.checkFileExists(
+      const fileExist = await this.s3Service.download.checkFileExists(
         params.storageBucketName,
         params.storagePath,
       );
@@ -276,7 +285,7 @@ export class WebsiteService {
 
       const fileExtension = '.txt';
 
-      const s3Document = await this.awsS3Service.download.downloadSmallFile(
+      const s3Document = await this.s3Service.download.downloadSmallFile(
         params.storageBucketName,
         params.storagePath,
       );

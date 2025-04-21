@@ -11,7 +11,6 @@ import { DocumentController } from './document/document.controller';
 import { DocumentService } from './document/document.service';
 import { DocumentRepo } from './document/document.repo';
 import { Document, DocumentSchema } from './document/schema/document.schema';
-import { AwsS3Module } from 'src/lib/aws_s3/aws-s3.module';
 import { TriggerModule } from '../events/trigger/triggers.module';
 import { PineconeVectorStoreModule } from 'src/lib/vector_store/pinecone/pinecone-vector-store.module';
 import { MulterModule } from '@nestjs/platform-express';
@@ -23,6 +22,8 @@ import { WebsiteController } from './website/website.controller';
 import { WebsiteRepo } from './website/website.repo';
 import { Website, WebsiteSchema } from './website/schema/website.schema';
 import { CrawlerModule } from '../crawler/crawler.module';
+import { AwsModule } from 'src/lib/aws/aws.module';
+import { AzureModule } from 'src/lib/azure/azure.module';
 
 @Module({
   imports: [
@@ -40,7 +41,8 @@ import { CrawlerModule } from '../crawler/crawler.module';
       { name: Document.name, schema: DocumentSchema },
       { name: Website.name, schema: WebsiteSchema },
     ]),
-    AwsS3Module,
+    AwsModule,
+    AzureModule,
     TriggerModule,
     PineconeVectorStoreModule,
     CrawlerModule,

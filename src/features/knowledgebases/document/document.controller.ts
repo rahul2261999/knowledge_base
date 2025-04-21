@@ -113,7 +113,7 @@ export class DocumentController {
 
   @Delete(':documentId')
   public async remove(@Param() params: DeleteDocumentDto) {
-    const data = await this.documentService.remove(params);
+    await this.documentService.remove(params);
 
     return new SuccessResponse('Document deleted successfully');
   }

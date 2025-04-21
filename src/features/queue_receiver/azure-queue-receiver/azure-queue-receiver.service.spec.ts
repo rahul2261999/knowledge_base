@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { QueueReceiverService } from './queue-receiver.service';
+import { AzureQueueReceiverService } from './azure-queue-receiver.service';
 
 describe('QueueReceiverService', () => {
-  let service: QueueReceiverService;
+  let service: AzureQueueReceiverService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [QueueReceiverService],
+      providers: [AzureQueueReceiverService],
     }).compile();
 
-    service = module.get<QueueReceiverService>(QueueReceiverService);
+    service = module.get<AzureQueueReceiverService>(AzureQueueReceiverService);
   });
 
   it('should be defined', () => {

@@ -4,5 +4,6 @@ import { AzureOpenaiEmbeddingsModule } from './azure-openai-embeddings/azure-ope
 
 @Module({
   imports: [AzureOpenaiEmbeddingsModule, VoyageEmbeddingsModule],
+  exports: [AzureOpenaiEmbeddingsModule, VoyageEmbeddingsModule],
 })
 export class EmbeddingsModule {}

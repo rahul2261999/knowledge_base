@@ -1,33 +1,27 @@
-import {
-  GetObjectCommand,
-  HeadObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
-import { LoggingService } from '../logger/logger.service';
+import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
 import fs from 'fs';
 import path from 'path';
-import { Readable } from 'stream';
 import InternalServer from 'src/core/error/internal-server.error';
-import { ILoggerData } from '../logger/logger.type';
 import { pipeline } from 'stream/promises';
+import { LoggingService } from 'src/lib/logger/logger.service';
+import { ILoggerData } from 'src/lib/logger/logger.type';
 
-export class AwsS3DownloadService {
-  private s3Client: S3Client;
-  private dowloadPath = path.join(process.cwd(), 's3-downloads');
-
+export class S3DownloadService {
   constructor(
-    private readonly S3client: S3Client,
+    private readonly blobServiceClient: BlobServiceClient,
     private readonly loggerService: LoggingService,
-  ) {
-    this.s3Client = S3client;
+  ) {}
+
+  private getContainerClient(containerName: string): ContainerClient {
+    return this.blobServiceClient.getContainerClient(containerName);
   }
 
   public async checkFileExists(
-    bucketName: string,
-    key: string,
+    containerName: string,
+    blobName: string,
   ): Promise<boolean> {
     const loggerData: ILoggerData = {
-      serviceName: 'AwsS3DownloadService',
+      serviceName: 'S3DownloadService',
       function: 'checkFileExists',
       message: 'Checking file existence',
     };
@@ -35,22 +29,19 @@ export class AwsS3DownloadService {
     try {
       this.loggerService.info(loggerData);
 
-      const command = new HeadObjectCommand({
-        Bucket: bucketName,
-        Key: key,
-      });
-
-      const metadata = await this.s3Client.send(command);
+      const containerClient = this.getContainerClient(containerName);
+      const blobClient = containerClient.getBlobClient(blobName);
+      const exists = await blobClient.exists();
 
       this.loggerService.info({
         ...loggerData,
-        message: 'file exist',
+        message: exists ? 'file exists' : 'file does not exist',
       });
 
-      return true;
+      return exists;
     } catch (error) {
       this.loggerService.error(
-        { ...loggerData, message: `not found ${key}` },
+        { ...loggerData, message: `error checking ${blobName}` },
         { error },
       );
 
@@ -58,9 +49,9 @@ export class AwsS3DownloadService {
     }
   }
 
-  async getFileMetadata(bucketName: string, key: string) {
+  async getFileMetadata(containerName: string, blobName: string) {
     const loggerData: ILoggerData = {
-      serviceName: 'AwsS3DownloadService',
+      serviceName: 'S3DownloadService',
       function: 'getFileMetadata',
       message: 'Getting file metadata',
     };
@@ -68,12 +59,9 @@ export class AwsS3DownloadService {
     try {
       this.loggerService.info(loggerData);
 
-      const command = new HeadObjectCommand({
-        Bucket: bucketName,
-        Key: key,
-      });
-
-      const metadata = await this.s3Client.send(command);
+      const containerClient = this.getContainerClient(containerName);
+      const blobClient = containerClient.getBlobClient(blobName);
+      const properties = await blobClient.getProperties();
 
       this.loggerService.info({
         ...loggerData,
@@ -81,13 +69,13 @@ export class AwsS3DownloadService {
       });
 
       return {
-        fileSize: metadata.ContentLength || 0,
-        contentType: metadata.ContentType,
-        lastModified: metadata.LastModified,
+        fileSize: properties.contentLength || 0,
+        contentType: properties.contentType,
+        lastModified: properties.lastModified,
       };
     } catch (error) {
       this.loggerService.error(
-        { ...loggerData, message: `not found ${key}` },
+        { ...loggerData, message: `not found ${blobName}` },
         { error },
       );
 
@@ -95,12 +83,9 @@ export class AwsS3DownloadService {
     }
   }
 
-  /**
-   * Download small files (<10MB) directly into memory
-   */
-  public async downloadSmallFile(bucket: string, key: string) {
+  public async downloadSmallFile(containerName: string, blobName: string) {
     const loggerData: ILoggerData = {
-      serviceName: 'AwsS3DownloadService',
+      serviceName: 'S3DownloadService',
       function: 'downloadSmallFile',
       message: 'Downloading small file',
     };
@@ -108,15 +93,18 @@ export class AwsS3DownloadService {
     try {
       this.loggerService.info(loggerData);
 
-      const command = new GetObjectCommand({
-        Bucket: bucket,
-        Key: key,
-      });
+      const containerClient = this.getContainerClient(containerName);
+      const blobClient = containerClient.getBlobClient(blobName);
+      const downloadResponse = await blobClient.download();
 
-      const response = await this.s3Client.send(command);
+      if (!downloadResponse.readableStreamBody) {
+        throw new Error('No readable stream available');
+      }
+
       const chunks: any[] = [];
+      const stream = downloadResponse.readableStreamBody;
 
-      for await (const chunk of response.Body as Readable) {
+      for await (const chunk of stream) {
         chunks.push(chunk);
       }
 
@@ -127,11 +115,11 @@ export class AwsS3DownloadService {
 
       return {
         buffer: Buffer.concat(chunks),
-        contentType: response.ContentType,
+        contentType: downloadResponse.contentType,
       };
     } catch (error) {
       this.loggerService.error(
-        { ...loggerData, message: `error downloading small file ${key}` },
+        { ...loggerData, message: `error downloading small file ${blobName}` },
         { error },
       );
 
@@ -141,16 +129,13 @@ export class AwsS3DownloadService {
     }
   }
 
-  /**
-   * Download large files (>10MB) using multipart download
-   */
   public async downloadLargeFile(
-    bucket: string,
-    key: string,
+    containerName: string,
+    blobName: string,
     downloadDir: string = 's3_download',
   ): Promise<{ filePath: string }> {
     const loggerData: ILoggerData = {
-      serviceName: 'AwsS3DownloadService',
+      serviceName: 'S3DownloadService',
       function: 'downloadLargeFile',
       message: 'Downloading large file',
     };
@@ -158,31 +143,25 @@ export class AwsS3DownloadService {
     try {
       this.loggerService.info(loggerData);
 
-      const tempFilePath = path.join(`${process.cwd()}`, downloadDir, key);
+      const tempFilePath = path.join(`${process.cwd()}`, downloadDir, blobName);
       const dirPath = path.dirname(tempFilePath);
       fs.mkdirSync(dirPath, { recursive: true });
 
       const fileStream = fs.createWriteStream(tempFilePath);
+      const containerClient = this.getContainerClient(containerName);
+      const blobClient = containerClient.getBlobClient(blobName);
+      const downloadResponse = await blobClient.download();
 
-      const command = new GetObjectCommand({
-        Bucket: bucket,
-        Key: key,
-      });
-
-      const { Body } = await this.s3Client.send(command);
-
-      if (!Body || typeof Body.transformToWebStream !== 'function') {
-        throw new Error(
-          'Received an invalid response from S3. No stream available.',
-        );
+      if (!downloadResponse.readableStreamBody) {
+        throw new Error('No readable stream available');
       }
 
-      await pipeline(Body.transformToWebStream(), fileStream);
+      await pipeline(downloadResponse.readableStreamBody, fileStream);
 
       return { filePath: tempFilePath };
     } catch (error) {
       this.loggerService.error(
-        { ...loggerData, message: `error downloading large file ${key}` },
+        { ...loggerData, message: `error downloading large file ${blobName}` },
         { error },
       );
 
@@ -190,10 +169,6 @@ export class AwsS3DownloadService {
     }
   }
 
-  /**
-   * Clean up temporary files after processing
-   * @param filePath Path to the temporary file
-   */
   public cleanupTempFile(filePath: string): void {
     try {
       if (fs.existsSync(filePath)) {

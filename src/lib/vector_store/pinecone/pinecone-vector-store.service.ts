@@ -4,9 +4,9 @@ import InternalServer from 'src/core/error/internal-server.error';
 import { Injectable } from '@nestjs/common';
 import { ILoggerData } from 'src/lib/logger/logger.type';
 import { LoggingService } from 'src/lib/logger/logger.service';
-import { AzureOpenaiEmbeddingsService } from 'src/lib/embeddings/azure-openai-embeddings/azure-openai-embeddings.service';
 import { ConfigurationService } from 'src/core/configuration/configuration.service';
 import { PineconeNsService } from './pinecone-ns.service';
+import { VoyageEmbeddingsService } from 'src/lib/embeddings/voyage-embeddings/voyage-embeddings.service';
 
 @Injectable()
 export class PineconeVectorStoreService implements BaseVectorStore {
@@ -16,7 +16,7 @@ export class PineconeVectorStoreService implements BaseVectorStore {
   constructor(
     private readonly loggingService: LoggingService,
     private readonly configurationService: ConfigurationService,
-    private readonly azureOpenAiEmbeddingService: AzureOpenaiEmbeddingsService,
+    private readonly embeddingService: VoyageEmbeddingsService,
   ) {
     this.pineconeClient = new Pinecone();
 
@@ -39,7 +39,7 @@ export class PineconeVectorStoreService implements BaseVectorStore {
 
       return new PineconeNsService(
         this.index.namespace(namespaceId),
-        this.azureOpenAiEmbeddingService,
+        this.embeddingService,
         this.loggingService,
       );
     } catch (error) {

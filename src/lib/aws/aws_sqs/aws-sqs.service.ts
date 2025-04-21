@@ -26,7 +26,7 @@ export class AwsSqsService {
     private readonly loggerService: LoggingService,
     private readonly configurationService: ConfigurationService,
   ) {
-    const creds = this.configurationService.getS3Creds();
+    const creds = this.configurationService.getAwsS3Creds();
 
     this.sqsClient = new SQSClient({
       credentials: {

@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { PineconeVectorStoreService } from './pinecone-vector-store.service';
-import { AzureOpenaiEmbeddingsModule } from 'src/lib/embeddings/azure-openai-embeddings/azure-openai-embeddings.module';
+import { EmbeddingsModule } from 'src/lib/embeddings/embeddings.module';
 
 @Module({
-  imports: [AzureOpenaiEmbeddingsModule],
+  imports: [EmbeddingsModule],
   providers: [PineconeVectorStoreService],
   exports: [PineconeVectorStoreService],
 })

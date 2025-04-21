@@ -6,7 +6,6 @@ import { DocumentRepo } from './document.repo';
 import { ILoggerData } from 'src/lib/logger/logger.type';
 import { KnowledgebasesService } from '../knowledgebases.service';
 import { Document } from './schema/document.schema';
-import { AwsS3Service } from 'src/lib/aws_s3/aws-s3.service';
 import { ConfigurationService } from 'src/core/configuration/configuration.service';
 import { ProcessingStatus } from 'src/core/constants/global.enum';
 import mongoose, { FilterQuery } from 'mongoose';
@@ -14,6 +13,7 @@ import fs from 'fs';
 import NotFound from 'src/core/error/not-found';
 import { DeleteDocumentDto } from './dto/delete-document.dto';
 import { PineconeVectorStoreService } from 'src/lib/vector_store/pinecone/pinecone-vector-store.service';
+import { S3Service } from 'src/lib/azure/s3/s3.service';
 
 @Injectable()
 export class DocumentService {
@@ -21,7 +21,7 @@ export class DocumentService {
     private readonly loggerService: LoggingService,
     private readonly documentRepo: DocumentRepo,
     private readonly knowledgeService: KnowledgebasesService,
-    private readonly awsS3Service: AwsS3Service,
+    private readonly awsS3Service: S3Service,
     private readonly configurationService: ConfigurationService,
     private readonly pineconeVectorService: PineconeVectorStoreService,
   ) {}
@@ -46,7 +46,7 @@ export class DocumentService {
       const key = `${knowledgebaseId}/document/${file.filename}`;
 
       await this.awsS3Service.uploadFile(
-        this.configurationService.getS3Buckets().knowledgebase,
+        this.configurationService.getAwsS3Buckets().knowledgebase,
         key,
         file,
       );
@@ -226,7 +226,7 @@ export class DocumentService {
 
       await this.documentRepo.delete(document._id);
       await this.awsS3Service.deleteFile(
-        this.configurationService.getS3Buckets().knowledgebase,
+        this.configurationService.getAwsS3Buckets().knowledgebase,
         document.url,
       );
 

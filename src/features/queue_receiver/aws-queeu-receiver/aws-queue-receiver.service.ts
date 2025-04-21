@@ -2,21 +2,23 @@ import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { AlsService } from 'src/core/common/als/als.service';
 import { ConfigurationService } from 'src/core/configuration/configuration.service';
 import InternalServer from 'src/core/error/internal-server.error';
-import { AwsSqsService } from 'src/lib/aws_sqs/aws-sqs.service';
 import { LoggingService } from 'src/lib/logger/logger.service';
 import { ILoggerData } from 'src/lib/logger/logger.type';
-import { CrawlContentQueuePayload } from 'src/lib/aws_sqs/aws-sqs-interface';
 import mongoose from 'mongoose';
 import { CrawledUrlStatus } from 'src/core/constants/global.enum';
-import { CrawlerService } from '../crawler/crawler.service';
-import { CrawledUrlRepo } from '../crawler/repo/crawled-url.repo';
-import { ProcessWebpage } from '../events/events.type';
-import { TriggerService } from '../events/trigger/triggers.service';
-import { EFileProcessorEvents } from '../events/events.enum';
+import { CrawlerService } from '../../crawler/crawler.service';
+import { CrawledUrlRepo } from '../../crawler/repo/crawled-url.repo';
+import { ProcessWebpage } from '../../events/events.type';
+import { TriggerService } from '../../events/trigger/triggers.service';
+import { EFileProcessorEvents } from '../../events/events.enum';
 import { IProcessIncomingFileAttrs } from 'src/lib/file_processors/index.type';
+import { ServiceBusService } from 'src/lib/azure/service-bus/service-bus.service';
+
+import { AwsSqsService } from 'src/lib/aws/aws_sqs/aws-sqs.service';
+import { CrawlContentQueuePayload } from 'src/lib/azure/service-bus/service-bus.interface';
 
 @Injectable()
-export class QueueReceiverService implements OnApplicationBootstrap {
+export class AwsQueueReceiverService implements OnApplicationBootstrap {
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY_MS = 5000;
 
@@ -28,6 +30,7 @@ export class QueueReceiverService implements OnApplicationBootstrap {
     private readonly crawlerService: CrawlerService,
     private readonly triggerService: TriggerService,
     private readonly crawledUrlRepo: CrawledUrlRepo,
+    private readonly serviceBusService: ServiceBusService,
   ) {}
 
   // This method will be called once the application is ready
@@ -55,7 +58,7 @@ export class QueueReceiverService implements OnApplicationBootstrap {
     while (true) {
       try {
         // await this.fileProcessingQueue();
-        await this.contentQueue();
+        // await this.contentQueue();
       } catch (error) {
         this.loggerService.error(
           {
@@ -82,7 +85,7 @@ export class QueueReceiverService implements OnApplicationBootstrap {
     try {
       this.loggerService.info(loggerData);
 
-      const queueNames = this.configurationService.getQueueNames();
+      const queueNames = this.configurationService.getAwsQueueNames();
       const queueUrl = await this.awsSqsService.getQueue(
         queueNames.FileProcessingQueue,
       );
@@ -275,7 +278,7 @@ export class QueueReceiverService implements OnApplicationBootstrap {
     try {
       this.loggerService.info(loggerData);
 
-      const queueNames = this.configurationService.getQueueNames();
+      const queueNames = this.configurationService.getAwsQueueNames();
       const queueUrl = await this.awsSqsService.getQueue(
         queueNames.CrawlContentQueue,
       );

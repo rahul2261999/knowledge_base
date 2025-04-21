@@ -11,7 +11,6 @@ import { ILoggerData } from 'src/lib/logger/logger.type';
 import { Injectable } from '@nestjs/common';
 import { PineconeVectorStoreService } from 'src/lib/vector_store/pinecone/pinecone-vector-store.service';
 import { DocumentService } from 'src/features/knowledgebases/document/document.service';
-import { AwsS3Service } from 'src/lib/aws_s3/aws-s3.service';
 import { ConfigurationService } from 'src/core/configuration/configuration.service';
 import mimetypes from 'mime-types';
 import mongoose from 'mongoose';
@@ -24,6 +23,7 @@ import { IProcessIncomingFileAttrs, ProcessWebpage } from '../events.type';
 import { EFileProcessorEvents } from '../events.enum';
 import { BaseFileProcessor } from 'src/lib/file_processors/index.type';
 import { WebsiteService } from 'src/features/knowledgebases/website/website.service';
+import { S3Service } from 'src/lib/azure/s3/s3.service';
 
 @Injectable()
 export class FileProcessorEvents {
@@ -32,7 +32,7 @@ export class FileProcessorEvents {
   constructor(
     private loggerService: LoggingService,
     private documentService: DocumentService,
-    private awsS3Service: AwsS3Service,
+    private s3Service: S3Service,
     private configurationService: ConfigurationService,
     private pineconVectorStoreService: PineconeVectorStoreService,
     private alsService: AlsService,
@@ -69,11 +69,14 @@ export class FileProcessorEvents {
               { processingStatus: ProcessingStatus.PROCESSING },
             );
 
-            const bucketName =
-              this.configurationService.getS3Buckets().knowledgebase;
+            // const bucketName =
+            //   this.configurationService.getAwsS3Buckets().knowledgebase;
 
-            const fileExist = await this.awsS3Service.download.checkFileExists(
-              bucketName,
+            const bucketName =
+              this.configurationService.getAzureStorageContainer();
+
+            const fileExist = await this.s3Service.download.checkFileExists(
+              bucketName.knowledgebase,
               document.url,
             );
 
@@ -92,11 +95,10 @@ export class FileProcessorEvents {
 
             const fileExtension = path.extname(document.name) as FileExtensions;
 
-            const s3Document =
-              await this.awsS3Service.download.downloadSmallFile(
-                this.configurationService.getS3Buckets().knowledgebase,
-                document.url,
-              );
+            const s3Document = await this.s3Service.download.downloadSmallFile(
+              bucketName.knowledgebase,
+              document.url,
+            );
 
             const mimetype = mimetypes.lookup(fileExtension);
 
@@ -217,7 +219,7 @@ export class FileProcessorEvents {
                 message: 'cleanupTempFile',
               });
 
-              this.awsS3Service.download.cleanupTempFile(s3TempDownloadPath);
+              this.s3Service.download.cleanupTempFile(s3TempDownloadPath);
             }
           }
         });

@@ -1,6 +1,10 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+interface AzureServiceBusCredentials {
+  connectionString: string;
+}
+
 @Injectable()
 export class ConfigurationService {
   constructor(private readonly configService: ConfigService) {}
@@ -16,11 +20,11 @@ export class ConfigurationService {
     return uri;
   }
 
-  getS3Buckets() {
+  getAwsS3Buckets() {
     const buckets = this.configService.get<{
       knowledgebase: string;
       crawler: string;
-    }>('AwsS3.buckets');
+    }>('Aws.AwsS3.buckets');
 
     if (!buckets) {
       throw new InternalServerErrorException(
@@ -31,7 +35,7 @@ export class ConfigurationService {
     return buckets;
   }
 
-  getS3Creds() {
+  getAwsS3Creds() {
     const accessKey: string = this.configService.get('AWS_ACCESS_KEY_ID')!;
     const secretAccessKey: string = this.configService.get(
       'AWS_SECRET_ACCESS_KEY',
@@ -62,11 +66,11 @@ export class ConfigurationService {
     return { apiKey, apiInstanceName, apiEmbeddingsDeploymentName, apiVersion };
   }
 
-  getQueueNames() {
+  getAwsQueueNames() {
     const queues = this.configService.get<{
       FileProcessingQueue: string;
       CrawlContentQueue: string;
-    }>('AwsSqs.Queues')!;
+    }>('Aws.AwsSqs.Queues')!;
 
     return queues;
   }
@@ -76,5 +80,39 @@ export class ConfigurationService {
     const model = this.configService.get<string>('VOYAGE_MODEL')!;
 
     return { apiKey, model };
+  }
+
+  public getAzureServiceBusCreds(): AzureServiceBusCredentials {
+    const connectionString = this.configService.get<string>(
+      'AZURE_SERVICE_BUS_CONNECTION_STRING',
+    )!;
+
+    return { connectionString };
+  }
+
+  public getAzureStorageCreds() {
+    const connectionString = this.configService.get<string>(
+      'AZURE_STORAGE_ACCOUNT_ACCESS_KEY',
+    )!;
+
+    return { connectionString };
+  }
+
+  public getAzureQueueNames() {
+    const queues = this.configService.get<{
+      FileProcessingQueue: string;
+      CrawlContentQueue: string;
+    }>('Azure.ServiceBus.Queues')!;
+
+    return queues;
+  }
+
+  public getAzureStorageContainer() {
+    const buckets = this.configService.get<{
+      knowledgebase: string;
+      crawler: string;
+    }>('Azure.S3.buckets')!;
+
+    return buckets;
   }
 }

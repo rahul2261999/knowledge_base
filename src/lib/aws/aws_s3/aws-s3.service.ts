@@ -6,14 +6,14 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { LoggingService } from '../logger/logger.service';
-import { ILoggerData } from '../logger/logger.type';
 import InternalServer from 'src/core/error/internal-server.error';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { ConfigurationService } from 'src/core/configuration/configuration.service';
 import { Upload } from '@aws-sdk/lib-storage';
 import fs from 'fs';
 import { AwsS3DownloadService } from './aws-s3-download.service';
+import { LoggingService } from 'src/lib/logger/logger.service';
+import { ILoggerData } from 'src/lib/logger/logger.type';
 
 @Injectable()
 export class AwsS3Service {
@@ -24,7 +24,7 @@ export class AwsS3Service {
     private readonly loggerService: LoggingService,
     private readonly configurationService: ConfigurationService,
   ) {
-    const s3Creds = this.configurationService.getS3Creds();
+    const s3Creds = this.configurationService.getAwsS3Creds();
 
     this.s3Client = new S3Client({
       region: 'us-east-1',

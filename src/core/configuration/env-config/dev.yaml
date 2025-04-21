@@ -1,8 +1,18 @@
-AwsS3:
-  buckets:
-    knowledgebase: "rag-knowledgebase-dev"
-    crawler: "rag-crawler-dev"
-AwsSqs:
-  Queues:
-    FileProcessingQueue: "File-Processing-Queue-Dev"
-    CrawlContentQueue: "Crawl-Content-Queue-Dev"
+Aws:
+  AwsS3:
+    buckets:
+      knowledgebase: "rag-knowledgebase-dev"
+      crawler: "rag-crawler-dev"
+  AwsSqs:
+    Queues:
+      FileProcessingQueue: "File-Processing-Queue-Dev"
+      CrawlContentQueue: "Crawl-Content-Queue-Dev"
+Azure:
+  S3:
+    buckets:
+      knowledgebase: "rag-knowledgebase-dev"
+      crawler: "rag-crawler-dev"
+  ServiceBus:
+    Queues:
+      FileProcessingQueue: "File-Processing-Queue-Dev"
+      CrawlContentQueue: "Crawl-Content-Queue-Dev"

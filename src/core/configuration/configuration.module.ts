@@ -59,17 +59,36 @@ import yaml from 'js-yaml';
         VOYAGE_API_KEY: Joi.string().required(),
         VOYAGE_MODEL: Joi.string().required(),
 
+        AZURE_SERVICE_BUS_CONNECTION_STRING: Joi.string().required(),
+        AZURE_STORAGE_ACCOUNT_ACCESS_KEY: Joi.string().required(),
         // =============== yaml config =============== //
-        AwsS3: Joi.object({
-          buckets: Joi.object({
-            knowledgebase: Joi.string().required(),
-            crawler: Joi.string().required(),
+        Aws: Joi.object({
+          AwsS3: Joi.object({
+            buckets: Joi.object({
+              knowledgebase: Joi.string().required(),
+              crawler: Joi.string().required(),
+            }),
+          }),
+          AwsSqs: Joi.object({
+            Queues: Joi.object({
+              FileProcessingQueue: Joi.string().required(),
+              CrawlContentQueue: Joi.string().required(),
+            }),
           }),
         }),
-        AwsSqs: Joi.object({
-          Queues: Joi.object({
-            FileProcessingQueue: Joi.string().required(),
-            CrawlContentQueue: Joi.string().required(),
+
+        Azure: Joi.object({
+          AzureS3: Joi.object({
+            buckets: Joi.object({
+              knowledgebase: Joi.string().required(),
+              crawler: Joi.string().required(),
+            }),
+          }),
+          AzureServiceBus: Joi.object({
+            Queues: Joi.object({
+              FileProcessingQueue: Joi.string().required(),
+              CrawlContentQueue: Joi.string().required(),
+            }),
           }),
         }),
       }),
