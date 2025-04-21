@@ -1,17 +1,17 @@
 import { Index, PineconeRecord } from '@pinecone-database/pinecone';
 import InternalServer from 'src/core/error/internal-server.error';
-import { AzureOpenaiEmbeddingsService } from 'src/lib/embeddings/azure-openai-embeddings/azure-openai-embeddings.service';
 import { LoggingService } from 'src/lib/logger/logger.service';
 import { ILoggerData } from 'src/lib/logger/logger.type';
 import { VectorDocument, VectorFilter } from './types/pinecone.type';
 import { unflattenObject } from 'src/utils/helper';
+import { VoyageEmbeddingsService } from 'src/lib/embeddings/voyage-embeddings/voyage-embeddings.service';
 
 export class PineconeNsService {
   private namespace: Index;
 
   constructor(
     namespace: Index,
-    private readonly embeddingService: AzureOpenaiEmbeddingsService,
+    private readonly embeddingService: VoyageEmbeddingsService,
     private readonly loggerService: LoggingService,
   ) {
     this.namespace = namespace;
@@ -32,7 +32,9 @@ export class PineconeNsService {
 
       const texts: string[] = documents.map((doc) => doc.text);
       const generatedEmbeddingBatch =
-        await this.embeddingService.generateEmbeddingsBatch(texts);
+        await this.embeddingService.generateEmbeddingsBatch(texts, {
+          input_type: 'document',
+        });
 
       const batch = documents.map((doc, index) => {
         const data: PineconeRecord = {
