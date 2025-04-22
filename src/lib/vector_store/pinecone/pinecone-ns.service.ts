@@ -77,8 +77,10 @@ export class PineconeNsService {
     try {
       this.loggerService.info({ ...loggerData, message: 'querying pinecone' });
 
-      const queryEmbedding =
-        await this.embeddingService.generateEmbeddings(query);
+      const queryEmbedding = await this.embeddingService.generateEmbeddings(
+        query,
+        { input_type: 'query' },
+      );
 
       const matchedDocuments = await this.namespace.query({
         vector: queryEmbedding,
