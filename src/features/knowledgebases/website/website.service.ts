@@ -167,6 +167,7 @@ export class WebsiteService {
       const updateBody: Partial<Website> = {
         url: updatWebisteDto.url,
         depth: updatWebisteDto.depth,
+        processingStatus: ProcessingStatus.PROCESSING,
       };
 
       const updatedDocument = await this.websiteRepository.update(
