@@ -29,7 +29,7 @@ import { flattenObject } from 'src/utils/helper';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { DateTime } from 'luxon';
 import { ConfigurationService } from 'src/core/configuration/configuration.service';
-import { AwsS3Service } from 'src/lib/aws/aws_s3/aws-s3.service';
+import { S3Service } from 'src/lib/azure/s3/s3.service';
 
 @Injectable()
 export class WebsiteService {
@@ -38,7 +38,7 @@ export class WebsiteService {
     private readonly websiteRepository: WebsiteRepo,
     private readonly knowledgeService: KnowledgebasesService,
     private readonly crawlService: CrawlerService,
-    private readonly s3Service: AwsS3Service,
+    private readonly s3Service: S3Service,
     private readonly pineconeVectorStoreService: PineconeVectorStoreService,
     private readonly configurationService: ConfigurationService,
   ) {}
@@ -180,7 +180,8 @@ export class WebsiteService {
       */
 
       if (updatWebisteDto.url !== website.url || updatWebisteDto.forceRefresh) {
-        const crawlingBukcet = this.configurationService.getAwsS3Buckets();
+        const crawlingBukcet =
+          this.configurationService.getAzureStorageContainer();
 
         await this.s3Service.deleteFolder(
           crawlingBukcet.crawler,
@@ -228,8 +229,44 @@ export class WebsiteService {
 
       const website = await this.findOne(id);
 
-      const updatedDocument = await this.websiteRepository.delete({
+      const crawlingBukcet =
+        this.configurationService.getAzureStorageContainer();
+
+      await this.s3Service.deleteFolder(
+        crawlingBukcet.crawler,
+        `${website.knowledgebaseId}/`,
+      );
+
+      const indexNamespace = this.pineconeVectorStoreService.getNamespace(
+        website.knowledgebaseId,
+      );
+
+      await indexNamespace.deleteDocuments({
+        prefix: `${website._id.toString()}#`,
+      });
+
+      const deletedWebsite = await this.websiteRepository.delete({
         _id: website._id,
+      });
+
+      const crawledSessions = await this.crawlService.findCrawlingSessions({
+        websiteId: website._id.toString(),
+      });
+
+      const sessionIds: mongoose.Types.ObjectId[] = crawledSessions.map(
+        (crawledSession) => {
+          const parsedSession = crawledSession.toJSON();
+
+          return parsedSession._id;
+        },
+      );
+
+      await this.crawlService.deleteCrawledUrl({
+        crawlingSessionId: { $in: sessionIds },
+      });
+
+      await this.crawlService.deleteCrawlingSession({
+        _id: { $in: sessionIds },
       });
 
       this.loggerService.info({
@@ -237,7 +274,7 @@ export class WebsiteService {
         message: 'execution completed',
       });
 
-      return updatedDocument;
+      return deletedWebsite;
     } catch (error) {
       this.loggerService.error({ ...loggerData, message: 'failed' });
 

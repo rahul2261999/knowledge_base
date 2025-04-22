@@ -144,14 +144,14 @@ export class AwsSqsService {
     }
   }
 
-  public async sendMessageInBatch(
+  public async sendMessageBatch(
     queueName: string,
     messages: SqsMessage[],
     options?: { batchSize?: number },
   ) {
     const loggerData: ILoggerData = {
       serviceName: 'AwsSqsService',
-      function: 'sendMessage',
+      function: 'sendMessageBatch',
       message: 'executing',
     };
 

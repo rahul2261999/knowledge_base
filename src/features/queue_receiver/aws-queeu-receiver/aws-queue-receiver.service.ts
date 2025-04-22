@@ -12,7 +12,6 @@ import { ProcessWebpage } from '../../events/events.type';
 import { TriggerService } from '../../events/trigger/triggers.service';
 import { EFileProcessorEvents } from '../../events/events.enum';
 import { IProcessIncomingFileAttrs } from 'src/lib/file_processors/index.type';
-import { ServiceBusService } from 'src/lib/azure/service-bus/service-bus.service';
 
 import { AwsSqsService } from 'src/lib/aws/aws_sqs/aws-sqs.service';
 import { CrawlContentQueuePayload } from 'src/lib/azure/service-bus/service-bus.interface';
@@ -30,7 +29,6 @@ export class AwsQueueReceiverService implements OnApplicationBootstrap {
     private readonly crawlerService: CrawlerService,
     private readonly triggerService: TriggerService,
     private readonly crawledUrlRepo: CrawledUrlRepo,
-    private readonly serviceBusService: ServiceBusService,
   ) {}
 
   // This method will be called once the application is ready
@@ -55,23 +53,21 @@ export class AwsQueueReceiverService implements OnApplicationBootstrap {
   }
 
   private async startQueueProcessing() {
-    while (true) {
-      try {
-        // await this.fileProcessingQueue();
-        // await this.contentQueue();
-      } catch (error) {
-        this.loggerService.error(
-          {
-            serviceName: 'QueueReceiverService',
-            function: 'startQueueProcessing',
-            message: 'Queue processing failed, restarting...',
-          },
-          { error },
-        );
+    try {
+      // await this.fileProcessingQueue();
+      // await this.contentQueue();
+    } catch (error) {
+      this.loggerService.error(
+        {
+          serviceName: 'QueueReceiverService',
+          function: 'startQueueProcessing',
+          message: 'Queue processing failed, restarting...',
+        },
+        { error },
+      );
 
-        // Wait before restarting to prevent rapid restart loops
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-      }
+      // Wait before restarting to prevent rapid restart loops
+      await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 

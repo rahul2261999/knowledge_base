@@ -23,6 +23,7 @@ import {
   ProcessIncomingFileAttrs,
 } from 'src/lib/azure/service-bus/service-bus.interface';
 import { MessageHandlers } from 'src/lib/azure/service-bus/service-bus.type';
+import { BackoffStrategy } from 'src/core/common/backoff/backoff.strategy';
 
 @Injectable()
 export class AzureQueueReceiverService implements OnApplicationBootstrap {
@@ -32,6 +33,8 @@ export class AzureQueueReceiverService implements OnApplicationBootstrap {
     autoCompleteMessages: false,
   };
 
+  private readonly contentQueueBackoff: BackoffStrategy;
+
   constructor(
     private readonly loggerService: LoggingService,
     private readonly configurationService: ConfigurationService,
@@ -40,7 +43,9 @@ export class AzureQueueReceiverService implements OnApplicationBootstrap {
     private readonly triggerService: TriggerService,
     private readonly crawledUrlRepo: CrawledUrlRepo,
     private readonly serviceBusService: ServiceBusService,
-  ) {}
+  ) {
+    this.contentQueueBackoff = new BackoffStrategy(this.loggerService);
+  }
 
   // This method will be called once the application is ready
   async onApplicationBootstrap() {
@@ -64,24 +69,15 @@ export class AzureQueueReceiverService implements OnApplicationBootstrap {
   }
 
   private async startQueueProcessing() {
-    while (true) {
-      try {
-        // await this.fileProcessingQueue();
+    await this.contentQueueBackoff.execute(
+      async () => {
         await this.azureContentQueue();
-      } catch (error) {
-        this.loggerService.error(
-          {
-            serviceName: 'QueueReceiverService',
-            function: 'startQueueProcessing',
-            message: 'Queue processing failed, restarting...',
-          },
-          { error },
-        );
-
-        // Wait before restarting to prevent rapid restart loops
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-      }
-    }
+      },
+      {
+        serviceName: 'QueueReceiverService',
+        functionName: 'startQueueProcessing',
+      },
+    );
   }
 
   private async handleProcessError(
@@ -316,10 +312,13 @@ export class AzureQueueReceiverService implements OnApplicationBootstrap {
     try {
       this.loggerService.info(loggerData);
 
-      const queueNames = this.configurationService.getAwsQueueNames();
+      const queueNames = this.configurationService.getAzureQueueNames();
       const receiver = this.serviceBusService.createReceiver(
         queueNames.CrawlContentQueue,
       );
+
+      // Keep the receiver running with efficient delay
+      await delay(this.RETRY_DELAY_MS);
 
       const messageHandlers: MessageHandlers = {
         processMessage: async (message) => {
@@ -332,11 +331,6 @@ export class AzureQueueReceiverService implements OnApplicationBootstrap {
 
       // Process messages with concurrent processing limit
       receiver.subscribe(messageHandlers, this.RECEIVER_OPTIONS);
-
-      // Keep the receiver running with efficient delay
-      while (true) {
-        await delay(this.RETRY_DELAY_MS);
-      }
     } catch (error) {
       this.loggerService.error(
         { ...loggerData, message: 'Error processing content queue' },

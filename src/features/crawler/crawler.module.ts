@@ -10,6 +10,7 @@ import { CrawledUrl, CrawledUrlSchema } from './schemas/crawled-url.model';
 import { CrawledUrlRepo } from './repo/crawled-url.repo';
 import { CrawlingSessionRepo } from './repo/crawling-session.repo';
 import { AwsModule } from 'src/lib/aws/aws.module';
+import { AzureModule } from 'src/lib/azure/azure.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AwsModule } from 'src/lib/aws/aws.module';
       { name: CrawledUrl.name, schema: CrawledUrlSchema },
     ]),
     AwsModule,
+    AzureModule,
   ],
   controllers: [CrawlerController],
   providers: [CrawlerService, CrawlingSessionRepo, CrawledUrlRepo],

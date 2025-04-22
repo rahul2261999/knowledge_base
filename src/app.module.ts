@@ -15,6 +15,8 @@ import { TracingInterceptor } from './core/common/tracing.interceptor';
 import { ScheduleModule } from '@nestjs/schedule';
 import { NextFunction, Request } from 'express';
 import { EmbeddingsModule } from './lib/embeddings/embeddings.module';
+import { AzureQueueReceiverModule } from './features/queue_receiver/azure-queue-receiver/azure-queue-receiver.module';
+import { AwsQueueReceiverModule } from './features/queue_receiver/aws-queeu-receiver/aws-queue-receiver.module';
 
 @Module({
   imports: [
@@ -32,6 +34,7 @@ import { EmbeddingsModule } from './lib/embeddings/embeddings.module';
     AlsModule,
     ScheduleModule.forRoot(),
     EmbeddingsModule,
+    AzureQueueReceiverModule,
   ],
   controllers: [AppController],
   providers: [

@@ -17,7 +17,7 @@ import { plainToClass } from 'class-transformer';
 import { CreateWebsiteResDto } from './dto/create-webiste-res.dto';
 
 @Controller({
-  path: 'knowledgebases/:knowledgebaseId/website',
+  path: ':tenantId/knowledgebases/:knowledgebaseId/website',
   version: '1',
 })
 export class WebsiteController {

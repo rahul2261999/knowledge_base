@@ -19,7 +19,6 @@ import {
   CrawledUrlStatus,
   CrawlingSessionStatus,
 } from 'src/core/constants/global.enum';
-import { AwsSqsService } from 'src/lib/aws/aws_sqs/aws-sqs.service';
 import { ConfigurationService } from 'src/core/configuration/configuration.service';
 import {
   CrawlContentQueueMessage,
@@ -30,17 +29,18 @@ import { LoggingService } from 'src/lib/logger/logger.service';
 import InternalServer from 'src/core/error/internal-server.error';
 import { AlsService } from 'src/core/common/als/als.service';
 import { ulid } from 'ulid';
-import { AwsS3Service } from 'src/lib/aws/aws_s3/aws-s3.service';
+import { S3Service } from 'src/lib/azure/s3/s3.service';
+import { ServiceBusService } from 'src/lib/azure/service-bus/service-bus.service';
 
 @Injectable()
 export class CrawlerService {
   constructor(
     private crawlingSessionRepo: CrawlingSessionRepo,
     private crawledUrlRepo: CrawledUrlRepo,
-    private awsSqsService: AwsSqsService,
+    private queueService: ServiceBusService,
     private configurationService: ConfigurationService,
     private loggerService: LoggingService,
-    private awsS3Service: AwsS3Service,
+    private s3Service: S3Service,
     private alSService: AlsService,
   ) {}
 
@@ -235,7 +235,7 @@ export class CrawlerService {
         await this.crawledUrlRepo.bulkCreate(bulkCreateCrawledUrl);
 
       const { CrawlContentQueue } =
-        this.configurationService.getAwsQueueNames();
+        this.configurationService.getAzureQueueNames();
 
       const tracingId = this.alSService.getTraceId() || ulid();
 
@@ -255,10 +255,7 @@ export class CrawlerService {
           return res;
         });
 
-      await this.awsSqsService.sendMessageInBatch(
-        CrawlContentQueue,
-        queueMessage,
-      );
+      await this.queueService.sendMessageBatch(CrawlContentQueue, queueMessage);
 
       this.loggerService.info({ ...loggerData, message: 'executed' });
 
@@ -323,11 +320,11 @@ export class CrawlerService {
 
       const extractedText: string = await cheerioClient.extractContent();
 
-      const { crawler } = this.configurationService.getAwsS3Buckets();
+      const { crawler } = this.configurationService.getAzureStorageContainer();
 
       const key = `${params.knowledgebaseId}/${params.crawlingSessionId}/${params.crawlingUrlId}.txt`;
 
-      await this.awsS3Service.uploadTextToS3(crawler, key, extractedText);
+      await this.s3Service.uploadTextToS3(crawler, key, extractedText);
 
       this.loggerService.debug({
         ...loggerData,
