@@ -34,7 +34,7 @@ import { AwsQueueReceiverModule } from './features/queue_receiver/aws-queeu-rece
     AlsModule,
     ScheduleModule.forRoot(),
     EmbeddingsModule,
-    AzureQueueReceiverModule,
+    // AzureQueueReceiverModule,
   ],
   controllers: [AppController],
   providers: [
