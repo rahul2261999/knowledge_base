@@ -11,6 +11,7 @@ async function bootstrap() {
   const loggerService = app.get(LoggingService);
   const alsService = app.get(AlsService);
 
+  app.enableCors();
   app.setGlobalPrefix('/rag/api');
 
   app.enableVersioning({

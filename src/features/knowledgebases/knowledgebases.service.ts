@@ -10,6 +10,7 @@ import { FetchedVectorDocument } from 'src/lib/vector_store/pinecone/types/pinec
 import mongoose, { DeleteResult } from 'mongoose';
 import { Status } from 'src/core/constants/global.enum';
 import { Knowledgebase } from './schema/knowledgebase.schema';
+import { UpdateKnowledgebaseDto } from './dto/update-knowledgebase.dto';
 
 @Injectable()
 export class KnowledgebasesService {
@@ -93,6 +94,38 @@ export class KnowledgebasesService {
       this.loggerService.info({ ...loggerData, message: 'executed' });
 
       return knowledgebases.toJSON();
+    } catch (error) {
+      this.loggerService.error({ ...loggerData, message: 'failed' });
+
+      throw error;
+    }
+  }
+
+  public async update(
+    knowledgebaseId: string,
+    updateKnowledgebaseDto: UpdateKnowledgebaseDto,
+  ) {
+    const loggerData: ILoggerData = {
+      serviceName: 'KnowledgebasesService',
+      function: 'update',
+      message: 'executing',
+    };
+
+    try {
+      this.loggerService.info(loggerData);
+
+      await this.findOne(knowledgebaseId);
+
+      const updatedKnowledgebase = await this.knowledgebaseRepo.update(
+        {
+          _id: new mongoose.Types.ObjectId(knowledgebaseId),
+        },
+        updateKnowledgebaseDto,
+      );
+
+      this.loggerService.info({ ...loggerData, message: 'executed' });
+
+      return updatedKnowledgebase;
     } catch (error) {
       this.loggerService.error({ ...loggerData, message: 'failed' });
 

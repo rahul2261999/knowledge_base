@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { KnowledgebasesService } from './knowledgebases.service';
 import { CreateKnowledgebaseDto } from './dto/create-knowledgebase.dto';
 import { KnowledgebaseResDto } from './dto/knowledgebase-res.dto';
@@ -8,6 +16,7 @@ import { QueryDto } from './dto/query.dto';
 import { QueryResponseDto } from './dto/query-response.dto';
 import { BaseParamsDto } from './dto/base-params.dto';
 import { FindKnowledgebaseDto } from './dto/find-knowledgebase.dto';
+import { UpdateKnowledgebaseDto } from './dto/update-knowledgebase.dto';
 
 @Controller({
   path: ':tenantId/knowledgebases',
@@ -63,6 +72,19 @@ export class KnowledgebasesController {
     return new SuccessResponse('Knowledgebase find successfully', {
       data: responseDto,
     });
+  }
+
+  @Patch(':knowledgebaseId')
+  async update(
+    @Param() parmas: FindKnowledgebaseDto,
+    @Body() updateKnowledgebaseDto: UpdateKnowledgebaseDto,
+  ) {
+    await this.knowledgebasesService.update(
+      parmas.knowledgebaseId,
+      updateKnowledgebaseDto,
+    );
+
+    return new SuccessResponse('Knowledgebase updated successfully');
   }
 
   @Delete(':knowledgebaseId')
