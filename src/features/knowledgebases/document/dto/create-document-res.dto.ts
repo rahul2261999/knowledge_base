@@ -26,7 +26,7 @@ export class CreateDocumentResDto {
 
   @Expose()
   @IsString()
-  bucketName: string;
+  tag: string;
 
   @Expose()
   @IsEnum(ProcessingStatus)
