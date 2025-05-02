@@ -12,5 +12,5 @@ export interface ProcessWebpage {
   crawlUrlId: string;
   crawlingSessionId: string;
   url: string;
-  bucketName: string;
+  tag: string;
 }

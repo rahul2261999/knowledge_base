@@ -4,7 +4,7 @@ import { LoggingService } from 'src/lib/logger/logger.service';
 import { ILoggerData } from 'src/lib/logger/logger.type';
 import { KnowledgebaseRepo } from './knowledgebase.repo';
 import NotFound from 'src/core/error/not-found';
-import { QueryDto } from './dto/query.dto';
+import { QueryDto } from './dto/embedding.dto';
 import { PineconeVectorStoreService } from 'src/lib/vector_store/pinecone/pinecone-vector-store.service';
 import { FetchedVectorDocument } from 'src/lib/vector_store/pinecone/types/pinecone.type';
 import mongoose, { DeleteResult } from 'mongoose';
@@ -176,8 +176,8 @@ export class KnowledgebasesService {
 
       let filter: object | undefined;
 
-      if (query.bucketName !== 'all') {
-        filter = { bucketName: query.bucketName };
+      if (query.tag !== 'all') {
+        filter = { tag: query.tag };
       }
 
       const vectorDocuments = await namespace.query<FetchedVectorDocument[]>(

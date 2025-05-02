@@ -13,7 +13,7 @@ export interface DefaultMessage extends MessageAttributes {
 export interface CrawlContentQueuePayload {
   tracingId?: string;
   url: string;
-  bucketName: string;
+  tag: string;
   knowledgebaseId: string;
   crawlingSessionId: string;
   crawlingUrlId: string;

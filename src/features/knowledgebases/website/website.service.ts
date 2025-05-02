@@ -313,7 +313,7 @@ export class WebsiteService {
           ...loggerData,
           message: 'File does not exist',
           additionalArgs: {
-            bucketName: params.bucketName,
+            tag: params.tag,
             storagePath: params.storagePath,
           },
         });
@@ -361,7 +361,7 @@ export class WebsiteService {
               crawlSessionId: params.crawlingSessionId,
               source: VectorDocumentSource.WEBSITE,
               url: params.url,
-              bucketName: params.bucketName.toLowerCase(),
+              tag: params.tag.toLowerCase(),
               ...lines,
             },
           };

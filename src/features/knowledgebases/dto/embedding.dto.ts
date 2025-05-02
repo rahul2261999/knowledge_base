@@ -8,7 +8,7 @@ export class QueryDto {
   @IsNotEmpty({ message: 'Bucket name is required' })
   @IsString({ message: 'Bucket name must be a string' })
   @Transform(({ value }) => value.toLowerCase())
-  bucketName: string = 'all';
+  tag: string = 'all';
 
   @IsOptional()
   @IsString({ message: 'Conversation ID should be a string' })

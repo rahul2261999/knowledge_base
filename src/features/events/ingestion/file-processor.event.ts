@@ -168,7 +168,7 @@ export class FileProcessorEvents {
                     documentId: params.documentId,
                     source: VectorDocumentSource.DOCUMENT,
                     filename: document!.name,
-                    bucketName: document!.tag.toLowerCase(),
+                    tag: document!.tag.toLowerCase(),
                     ...lines,
                   },
                 };

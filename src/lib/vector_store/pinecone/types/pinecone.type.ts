@@ -7,7 +7,7 @@ export interface Loc {
 }
 
 export interface VectorDocumentMetadata {
-  bucketName: string;
+  tag: string;
   documentId: string;
   filename: string;
   knowledgebaseId: string;

@@ -248,7 +248,7 @@ export class CrawlerService {
               knowledgebaseId: params.knowledgebaseId,
               url: it.url,
               tracingId,
-              bucketName: 'general',
+              tag: 'general',
             },
           };
 

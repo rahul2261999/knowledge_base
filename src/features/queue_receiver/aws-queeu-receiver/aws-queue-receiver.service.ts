@@ -404,7 +404,7 @@ export class AwsQueueReceiverService implements OnApplicationBootstrap {
                       } else {
                         const webPage: ProcessWebpage = {
                           url: messageBody.url,
-                          bucketName: messageBody.bucketName,
+                          tag: messageBody.tag,
                           storageBucketName: crawledRes.storageBucket,
                           storagePath: crawledRes.key,
                           knowledgebaseId: messageBody.knowledgebaseId,

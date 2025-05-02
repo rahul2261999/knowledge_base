@@ -1,6 +1,6 @@
 export interface CrawlContentQueuePayload {
   url: string;
-  bucketName: string;
+  tag: string;
   knowledgebaseId: string;
   crawlingSessionId: string;
   crawlingUrlId: string;

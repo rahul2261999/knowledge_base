@@ -13,8 +13,8 @@ export class QueryResponseDto {
   text: string;
 
   @Expose()
-  @Transform(({ obj }) => obj.metadata.bucketName)
-  bucketName: string;
+  @Transform(({ obj }) => obj.metadata.tag)
+  tag: string;
 
   @Expose()
   @Transform(({ obj }) => obj.metadata.source)
